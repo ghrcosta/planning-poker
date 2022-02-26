@@ -1,0 +1,5 @@
+# Java version to be used in GCP
+runtime: java11
+
+# The type of virtual machine GCP will use to run the application
+instance_class: F1
