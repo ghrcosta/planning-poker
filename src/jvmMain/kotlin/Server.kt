@@ -1,17 +1,13 @@
 import io.ktor.application.Application
-import io.ktor.application.call
 import io.ktor.application.install
 import io.ktor.features.Compression
 import io.ktor.features.ContentNegotiation
+import io.ktor.features.StatusPages
 import io.ktor.features.gzip
-import io.ktor.html.respondHtml
-import io.ktor.http.HttpStatusCode
-import io.ktor.http.content.resources
-import io.ktor.http.content.static
-import io.ktor.routing.get
-import io.ktor.routing.routing
 import io.ktor.serialization.json
 import io.ktor.server.netty.EngineMain
+import io.ktor.sessions.Sessions
+import io.ktor.sessions.cookie
 import kotlinx.html.HTML
 import kotlinx.html.body
 import kotlinx.html.div
@@ -35,6 +31,8 @@ fun HTML.index() {
     }
 }
 
+val pollingManager = PollingManager()
+
 // See resources/application.conf
 fun main(args: Array<String>) = EngineMain.main(args)
 
@@ -53,12 +51,19 @@ fun Application.module() {
         gzip()
     }
 
-    routing {
-        get("/") {
-            call.respondHtml(HttpStatusCode.OK, HTML::index)
-        }
-        static("/static") {
-            resources()
-        }
+    // Handle request exceptions
+    // See: https://ktor.io/docs/status-pages.html
+    install(StatusPages) {
+        setup()
     }
+
+    // Add session cookies to identify users
+    // See: https://ktor.io/docs/sessions.html
+    install(Sessions) {
+        cookie<ParticipantSession>("session")
+    }
+
+    configureRouting()
 }
+
+data class ParticipantSession(val roomId: String, val participantName: String)

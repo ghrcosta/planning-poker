@@ -81,9 +81,14 @@ kotlin {
                 implementation("io.ktor:ktor-server-core:$ktorVersion")
                 implementation("io.ktor:ktor-server-netty:$ktorVersion")
                 implementation("io.ktor:ktor-serialization:$ktorVersion")
+                implementation("io.ktor:ktor-server-sessions:$ktorVersion")
                 implementation("io.ktor:ktor-html-builder:$ktorVersion")
 
                 implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:0.7.3")
+
+                // Google Cloud Firebase - Firestore database
+                // https://firebase.google.com/support/release-notes/admin/java
+                implementation("com.google.firebase:firebase-admin:8.1.0")
 
                 // TODO: Use GCloud logging
                 implementation("ch.qos.logback:logback-classic:1.2.10")

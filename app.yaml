@@ -2,4 +2,20 @@
 runtime: java11
 
 # The type of virtual machine GCP will use to run the application
-instance_class: F1
+# https://cloud.google.com/appengine/docs/standard#instance_classes
+instance_class: B1
+
+# This application is NOT scalable. The aim was to deploy to GAE and forever stay in the free tier. That means using the
+# Standard environment with automatic or basic scaling. The Standard environment doesn't support websocket, so we need
+# to use long polling. And neither automatic nor basic scaling support sending requests to specific instances (or, in
+# our case, all of them). Due to these limitations, the application must always only have one instance to make sure all
+# clients will be notified when Cloud Function notifies that the database has been modified. If more than one instance
+# is created, the application will notify the clients on the instance that received the notification and the others
+# would have to wait until their next sync request.
+#
+# Real solutions would be:
+#    1. Deploy with manual scaling, which supports individual instance targeting.
+#    2. Deploy to Flexible environment, Kubernetes or Cloud VM, which would allow websocket to be implemented
+basic_scaling:
+  max_instances: 1
+  idle_timeout: 5m
