@@ -1,3 +1,6 @@
+import application.PollingManager
+import config.configureRouting
+import config.setup
 import io.ktor.application.Application
 import io.ktor.application.install
 import io.ktor.features.Compression

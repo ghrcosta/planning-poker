@@ -1,3 +1,6 @@
+import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
+
 // See gradle.properties
 val appVersion: String by project
 
@@ -27,6 +30,11 @@ plugins {
 
 
     /** Deploy-related plugins **/
+
+    // Creates jar containing all project dependencies
+    // https://ktor.io/docs/fatjar.html#prerequisites
+    // https://github.com/johnrengelman/shadow
+    id("com.github.johnrengelman.shadow") version "7.1.0"
 
     // Plugin for AppEngine deployment. The "-appyaml" part is not required but is recommended.
     // https://github.com/GoogleCloudPlatform/app-gradle-plugin
@@ -130,30 +138,20 @@ application {
 }
 
 
-// include JS artifacts in any JAR we generate
+
 tasks.getByName<Jar>("jvmJar") {
-    val taskName = if (project.hasProperty("isProduction")
-                       || project.gradle.startParameter.taskNames.contains("installDist")
-    ) {
-        "jsBrowserProductionWebpack"
-    } else {
-        "jsBrowserDevelopmentWebpack"
-    }
-    val webpackTask = tasks.getByName<org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack>(taskName)
+    val isProduction = project.hasProperty("isProduction")
+    val containsInstallDist = project.gradle.startParameter.taskNames.contains("installDist")
+    val containsShadowJar = project.gradle.startParameter.taskNames.contains("shadowJar")
+    val taskName =
+        if (isProduction || containsInstallDist || containsShadowJar) {
+            "jsBrowserProductionWebpack"
+        } else {
+            "jsBrowserDevelopmentWebpack"
+        }
+    val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
-}
-
-
-distributions {
-    main {
-        contents {
-            from("$buildDir/libs") {
-                rename("${rootProject.name}-jvm", rootProject.name)
-                into("lib")
-            }
-        }
-    }
 }
 
 
@@ -168,11 +166,42 @@ tasks.getByName<JavaExec>("run") {
 }
 
 
+/** Name of the jar file containing all dependencies that must be deployed and executed by GCP.  */
+val jarWithDependenciesFileName = "${project.name}-$version-with-dependencies.jar"
+
+tasks {
+    // Configure task that will create the jar with dependencies
+    val shadowJarTask = named<ShadowJar>("shadowJar") {
+        // Execute task to create application jar. It was also configured to compile browser .js file (see above).
+        dependsOn(getByName<Jar>("jvmJar"))
+
+        // For some reason the .js file is not included in the jar by default, so add it manually.
+        // At the same time, remove the minification mapping file since we don't need to distribute it.
+        from("$buildDir/distributions/").exclude("*.map")
+
+        archiveFileName.set(jarWithDependenciesFileName)
+    }
+
+    // Ensure the "assemble" task (executed by gcloud during deploy) will build the correct jar file
+    named("assemble") {
+        dependsOn(shadowJarTask)
+    }
+
+    // We don't need .zip/.tar file distributions
+    named("distZip") {
+        enabled = false
+    }
+    named("distTar") {
+        enabled = false
+    }
+}
+
+
 val versionAppEngine = appVersion.replace(".","-")  // AppEngine only allows letters, numbers and hyphen
 appengine {
     stage {
         setAppEngineDirectory("./")
-        //setArtifact("build/libs/$jarWithDependenciesFileName")
+        setArtifact("build/libs/$jarWithDependenciesFileName")
     }
     deploy {
         projectId = "GCLOUD_CONFIG"

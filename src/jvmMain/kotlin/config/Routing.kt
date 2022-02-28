@@ -1,4 +1,9 @@
-import PollingManager.Companion.POLLING_TIMEOUT_MILLISECONDS
+package config
+
+import ParticipantSession
+import Room
+import application.RoomService
+import index
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -6,6 +11,7 @@ import io.ktor.html.respondHtml
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.content.resources
 import io.ktor.http.content.static
+import io.ktor.request.ContentTransformationException
 import io.ktor.request.receive
 import io.ktor.response.respond
 import io.ktor.routing.get
@@ -16,16 +22,10 @@ import io.ktor.routing.routing
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import kotlinx.html.HTML
+import pollingManager
 import storage.Storage
-import java.util.UUID
 
 fun Application.configureRouting() {
     routing {
@@ -37,15 +37,7 @@ fun Application.configureRouting() {
         }
 
         post("/create") {
-            val storage = Storage.newInstance()
-
-            var newRoom: Room
-            do {
-                newRoom = Room(UUID.randomUUID().toString())
-            } while (storage.getRoom(newRoom.id) != null)
-
-            storage.setRoom(newRoom)
-
+            val newRoom = RoomService().createRoom()
             call.respond(newRoom)
         }
 
@@ -57,16 +49,7 @@ fun Application.configureRouting() {
 
                 val name = call.request.queryParameters["name"] ?: throw IllegalArgumentException("Name required")
 
-                val storage = Storage.newInstance()
-                val room = storage.getRoom(roomId) ?: throw NoSuchElementException("Room not found")
-
-                if (room.participants.any { it.name == name }) {
-                    throw IllegalArgumentException("Room already contains a participant with that name")
-                }
-
-                room.participants = room.participants.plus(Participant(name = name))
-
-                storage.setRoom(room)
+                val room = RoomService().addParticipant(roomId = roomId, participantName = name)
 
                 call.sessions.set(ParticipantSession(roomId, name))
                 call.respond(room)
@@ -81,14 +64,7 @@ fun Application.configureRouting() {
 
                 val vote = call.request.queryParameters["vote"] ?: throw IllegalArgumentException("Vote required")
 
-                val storage = Storage.newInstance()
-                val room = storage.getRoom(roomId) ?: throw NoSuchElementException("Room not found")
-
-                room.participants.find { it.name == name }
-                        ?.apply { this.vote = vote }
-                        ?: throw NoSuchElementException("Participant not found")
-
-                storage.setRoom(room)
+                RoomService().setVote(roomId = roomId, participantName = name, vote = vote)
 
                 call.respond(status = HttpStatusCode.NoContent, message = "")
             }
@@ -100,14 +76,7 @@ fun Application.configureRouting() {
 
                 val name = getParticipantName(call, roomId)
 
-                val storage = Storage.newInstance()
-                val room = storage.getRoom(roomId) ?: throw NoSuchElementException("Room not found")
-
-                assertParticipantIsInRoom(room, name)
-
-                room.votesRevealed = true
-
-                storage.setRoom(room)
+                RoomService().revealVotes(roomId = roomId, participantName = name)
 
                 call.respond(status = HttpStatusCode.NoContent, message = "")
             }
@@ -119,16 +88,7 @@ fun Application.configureRouting() {
 
                 val name = getParticipantName(call, roomId)
 
-                val storage = Storage.newInstance()
-                val room = storage.getRoom(roomId) ?: throw NoSuchElementException("Room not found")
-                assertParticipantIsInRoom(room, name)
-
-                room.votesRevealed = false
-                room.participants.forEach {
-                    it.vote = null
-                }
-
-                storage.setRoom(room)
+                RoomService().clearVotes(roomId = roomId, participantName = name)
 
                 call.respond(status = HttpStatusCode.NoContent, message = "")
             }
@@ -140,36 +100,19 @@ fun Application.configureRouting() {
 
                 val name = getParticipantName(call, roomId)
 
-                val storage = Storage.newInstance()
-                val room = storage.getRoom(roomId) ?: throw NoSuchElementException("Room not found")
-                assertParticipantIsInRoom(room, name)
-
-                val clientRoomState = call.receive<Room>()
-                if (clientRoomState == room) {
-                    // If the client already has the latest data, start long polling to wait until there is an update.
-                    // If an update is received before the timeout, it is sent to the client. Otherwise, the client is
-                    // instructed to send another sync request.
-
-                    val pollingJob = CoroutineScope(Dispatchers.IO).launch {
-                        pollingManager.updates.collect { room ->
-                            call.respond(room)
-                            this.cancel()  // Because SharedFlows never complete, they can only be cancelled
-                        }
-                    }
-                    try {
-                        withTimeout(POLLING_TIMEOUT_MILLISECONDS) {
-                            pollingJob.join()
-                        }
-                    } catch (e: TimeoutCancellationException) {
-                        pollingJob.cancel()
-                        call.respond(status = HttpStatusCode.NotModified, message = "")
-                    }
-
-                } else {
-                    // If the client doesn't have the latest data, send it now without waiting for updates. The client
-                    // should immediately send another sync request to wait for future updates.
-                    call.respond(room)
+                val clientRoomState: Room = try {
+                    call.receive()
+                } catch (e: ContentTransformationException) {
+                    Room("unknown")
                 }
+
+                RoomService().sync(
+                    roomId = roomId,
+                    participantName = name,
+                    clientRoomState = clientRoomState,
+                    doOnUpdateReceived = { room -> launch { call.respond(room) } },
+                    doOnTimeout = { launch { call.respond(status = HttpStatusCode.NotModified, message = "") } }
+                )
             }
 
             post("/notifyUpdated") {
@@ -196,6 +139,7 @@ fun Application.configureRouting() {
         }
 
         static("/static") {
+            // Includes the javascript file
             resources()
         }
     }
@@ -208,11 +152,4 @@ fun getParticipantName(call: ApplicationCall, roomId: String): String {
         throw IllegalArgumentException("Session mismatch")
     }
     return session?.participantName ?: throw IllegalArgumentException("Participant unknown")
-}
-
-
-fun assertParticipantIsInRoom(room: Room, participantName: String) {
-    if (room.participants.none { it.name == participantName }) {
-        throw IllegalArgumentException("Participant not found")
-    }
 }

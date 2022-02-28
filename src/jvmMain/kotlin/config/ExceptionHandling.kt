@@ -1,3 +1,5 @@
+package config
+
 import io.ktor.application.call
 import io.ktor.features.StatusPages
 import io.ktor.http.HttpStatusCode
