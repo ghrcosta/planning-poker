@@ -1,10 +1,12 @@
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlin.time.DurationUnit
+import kotlin.time.toDuration
 
 class PollingManager {
 
     companion object {
-        const val POLLING_TIMEOUT_MILLISECONDS = 2000L
+        val POLLING_TIMEOUT_MILLISECONDS = 2.toDuration(DurationUnit.MINUTES).inWholeMilliseconds
     }
 
     private val _updates = MutableSharedFlow<Room>()

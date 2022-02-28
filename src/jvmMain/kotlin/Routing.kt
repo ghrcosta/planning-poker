@@ -16,8 +16,12 @@ import io.ktor.routing.routing
 import io.ktor.sessions.get
 import io.ktor.sessions.sessions
 import io.ktor.sessions.set
-import kotlinx.coroutines.async
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.TimeoutCancellationException
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
 import kotlinx.html.HTML
 import storage.Storage
@@ -60,7 +64,7 @@ fun Application.configureRouting() {
                     throw IllegalArgumentException("Room already contains a participant with that name")
                 }
 
-                room.participants.plus(Participant(name = name))
+                room.participants = room.participants.plus(Participant(name = name))
 
                 storage.setRoom(room)
 
@@ -142,14 +146,29 @@ fun Application.configureRouting() {
 
                 val clientRoomState = call.receive<Room>()
                 if (clientRoomState == room) {
-                    val deferred = async {
-                        withTimeout(POLLING_TIMEOUT_MILLISECONDS) {
-                            pollingManager.updates.collect { room ->
-                                call.respond(room)
-                            }
+                    // If the client already has the latest data, start long polling to wait until there is an update.
+                    // If an update is received before the timeout, it is sent to the client. Otherwise, the client is
+                    // instructed to send another sync request.
+
+                    val pollingJob = CoroutineScope(Dispatchers.IO).launch {
+                        pollingManager.updates.collect { room ->
+                            call.respond(room)
+                            this.cancel()  // Because SharedFlows never complete, they can only be cancelled
                         }
                     }
-                    deferred.await()
+                    try {
+                        withTimeout(POLLING_TIMEOUT_MILLISECONDS) {
+                            pollingJob.join()
+                        }
+                    } catch (e: TimeoutCancellationException) {
+                        pollingJob.cancel()
+                        call.respond(status = HttpStatusCode.NotModified, message = "")
+                    }
+
+                } else {
+                    // If the client doesn't have the latest data, send it now without waiting for updates. The client
+                    // should immediately send another sync request to wait for future updates.
+                    call.respond(room)
                 }
             }
 

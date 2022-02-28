@@ -6,18 +6,24 @@ version = appVersion
 
 
 plugins {
-    kotlin("multiplatform") version "1.6.10"
+    val kotlinVersion = "1.6.10"
+
+    kotlin("multiplatform") version kotlinVersion
 
     /** Common plugins **/
 
     // For conversion between Kotlin object and JSON representation
-    kotlin("plugin.serialization") version "1.6.10"
+    kotlin("plugin.serialization") version kotlinVersion
 
 
     /** JVM-specific plugins **/
 
     // Required for the JVM to run
     application
+
+    // Adds empty constructors to Kotlin data classes, required to insert/retrieve data to/from database.
+    // https://kotlinlang.org/docs/no-arg-plugin.html
+    id("org.jetbrains.kotlin.plugin.noarg") version kotlinVersion  // See section "noArg" below
 
 
     /** Deploy-related plugins **/
@@ -26,6 +32,10 @@ plugins {
     // https://github.com/GoogleCloudPlatform/app-gradle-plugin
     // https://github.com/GoogleCloudPlatform/app-gradle-plugin/blob/master/USER_GUIDE.md#applying-the-plugin
     id("com.google.cloud.tools.appengine-appyaml") version "2.4.2"
+}
+
+noArg {
+    annotation("NoArgConstructor")
 }
 
 
