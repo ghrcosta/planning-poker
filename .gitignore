@@ -4,6 +4,9 @@
 .idea/**/dictionaries
 .idea/**/shelf
 
+# Automatically generated
+.idea/artifacts
+
 # Default ignored files
 /build/
 

@@ -11,28 +11,6 @@ import io.ktor.serialization.json
 import io.ktor.server.netty.EngineMain
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
-import kotlinx.html.HTML
-import kotlinx.html.body
-import kotlinx.html.div
-import kotlinx.html.head
-import kotlinx.html.id
-import kotlinx.html.script
-import kotlinx.html.title
-
-fun HTML.index() {
-    head {
-        title("Hello from Ktor!")
-    }
-    body {
-        div {
-            +"Hello from Ktor"
-        }
-        div {
-            id = "root"
-        }
-        script(src = "/static/planning-poker.js") {}
-    }
-}
 
 val pollingManager = PollingManager()
 

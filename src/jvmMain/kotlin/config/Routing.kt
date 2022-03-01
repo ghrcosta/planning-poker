@@ -3,7 +3,6 @@ package config
 import ParticipantSession
 import Room
 import application.RoomService
-import index
 import io.ktor.application.Application
 import io.ktor.application.ApplicationCall
 import io.ktor.application.call
@@ -127,15 +126,14 @@ fun Application.configureRouting() {
 
                 call.respond(status = HttpStatusCode.NoContent, message = "")
             }
+
+            get {
+                call.respondHtml(HttpStatusCode.OK, HTML::defaultPage)
+            }
         }
 
-
-
-
-
-
         get("/") {
-            call.respondHtml(HttpStatusCode.OK, HTML::index)
+            call.respondHtml(HttpStatusCode.OK, HTML::defaultPage)
         }
 
         static("/static") {
@@ -145,7 +143,7 @@ fun Application.configureRouting() {
     }
 }
 
-fun getParticipantName(call: ApplicationCall, roomId: String): String {
+private fun getParticipantName(call: ApplicationCall, roomId: String): String {
     val session = call.sessions.get<ParticipantSession>()
     val sessionRoomId = session?.roomId ?: ""
     if (roomId != sessionRoomId) {

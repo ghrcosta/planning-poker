@@ -126,7 +126,15 @@ kotlin {
                 implementation("io.ktor:ktor-client-serialization:$ktorVersion")
 
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react:$reactVersion")
+                implementation("org.jetbrains.kotlin-wrappers:kotlin-react-css:$reactVersion")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:$reactVersion")
+
+                // Material UI (MUI) - Ready-to-use UI components
+                // MIT License
+                // https://mui.com/pt/core/
+                implementation(npm("@mui/material", "5.4.4"))
+                implementation(npm("@emotion/react", "11.8.1"))
+                implementation(npm("@emotion/styled", "11.8.1"))
             }
         }
     }
@@ -134,17 +142,14 @@ kotlin {
 
 
 application {
+    // Sets the initialization class. Used both to execute locally (run task) and to generate the jar (shadowJar task).
     mainClass.set("ServerKt")
 }
 
 
-
 tasks.getByName<Jar>("jvmJar") {
-    val isProduction = project.hasProperty("isProduction")
-    val containsInstallDist = project.gradle.startParameter.taskNames.contains("installDist")
-    val containsShadowJar = project.gradle.startParameter.taskNames.contains("shadowJar")
     val taskName =
-        if (isProduction || containsInstallDist || containsShadowJar) {
+        if (project.gradle.startParameter.taskNames.contains("shadowJar")) {
             "jsBrowserProductionWebpack"
         } else {
             "jsBrowserDevelopmentWebpack"
@@ -152,12 +157,6 @@ tasks.getByName<Jar>("jvmJar") {
     val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
     dependsOn(webpackTask) // make sure JS gets compiled first
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) // bring output file along into the JAR
-}
-
-
-// Alias "installDist" as "stage" (for cloud providers)
-tasks.create("stage") {
-    dependsOn(tasks.getByName("installDist"))
 }
 
 
