@@ -1,21 +1,23 @@
 package components.index
 
 import HOST
-import LocalData
 import Room
+import config.Network
 import csstype.Position
 import csstype.pct
 import csstype.translate
 import external.MaterialButton
 import goTo
-import kotlinx.browser.window
+import io.ktor.client.request.post
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.readText
+import io.ktor.http.HttpStatusCode
+import io.ktor.utils.io.core.use
 import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.await
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import org.w3c.fetch.RequestInit
 import react.FC
 import react.Props
 import react.css.css
@@ -47,12 +49,16 @@ val IndexComponent = FC<Props> {
 }
 
 suspend fun createRoom() = coroutineScope {
-    val response =
-        window
-            .fetch("${HOST}/create", RequestInit(method = "POST"))
-            .await().text().await()
-    val room: Room = Json.decodeFromString(response)
+    val url = "${HOST}/create"
 
-    LocalData.room = room
+    val response: HttpResponse = Network.getClient().use { it.post(url) }
+    val responseText = response.readText()
+
+    if (response.status != HttpStatusCode.OK) {
+        Network.showRequestErrorAlert(responseText)
+        return@coroutineScope
+    }
+
+    val room: Room = Json.decodeFromString(responseText)  // No need to save
     goTo(room.id)
 }

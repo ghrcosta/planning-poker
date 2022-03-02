@@ -16,4 +16,6 @@ abstract class Storage {
     abstract fun getRoom(roomId: String): Room?
 
     abstract fun setRoom(room: Room)
+
+    abstract fun deleteAllRooms()
 }

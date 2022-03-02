@@ -41,10 +41,10 @@ fun Application.module() {
     // Add session cookies to identify users
     // See: https://ktor.io/docs/sessions.html
     install(Sessions) {
-        cookie<ParticipantSession>("session")
+        cookie<ParticipantSession>("session") {
+            cookie.httpOnly = false
+        }
     }
 
     configureRouting()
 }
-
-data class ParticipantSession(val roomId: String, val participantName: String)

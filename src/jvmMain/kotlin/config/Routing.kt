@@ -35,6 +35,12 @@ fun Application.configureRouting() {
             call.respond(status = HttpStatusCode.NoContent, message = "")
         }
 
+        // Endpoint called by a GAE cron job we created. See cron.yaml
+        get("/tasks/cleanup") {
+            RoomService().deleteAllRooms()
+            call.respond(status = HttpStatusCode.NoContent, message = "")
+        }
+
         post("/create") {
             val newRoom = RoomService().createRoom()
             call.respond(newRoom)
@@ -48,10 +54,10 @@ fun Application.configureRouting() {
 
                 val name = call.request.queryParameters["name"] ?: throw IllegalArgumentException("Name required")
 
-                val room = RoomService().addParticipant(roomId = roomId, participantName = name)
+                RoomService().addParticipant(roomId = roomId, participantName = name)
 
                 call.sessions.set(ParticipantSession(roomId, name))
-                call.respond(room)
+                call.respond(status = HttpStatusCode.NoContent, message = "")
             }
 
             put("/vote") {

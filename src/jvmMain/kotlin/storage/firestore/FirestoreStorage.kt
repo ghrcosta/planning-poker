@@ -50,4 +50,11 @@ class FirestoreStorage(
         val result = docRef.set(room)
         result.get()  // Execute synchronously
     }
+
+    override fun deleteAllRooms() {
+        val docRefs = db.collection(COLLECTION_ROOMS).listDocuments()
+        docRefs.forEach { docRef ->
+            docRef.delete()
+        }
+    }
 }

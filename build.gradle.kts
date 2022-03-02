@@ -108,8 +108,9 @@ kotlin {
                 // https://firebase.google.com/support/release-notes/admin/java
                 implementation("com.google.firebase:firebase-admin:8.1.0")
 
-                // TODO: Use GCloud logging
-                implementation("ch.qos.logback:logback-classic:1.2.10")
+                // Google Cloud Logging via Logback appender
+                // https://cloud.google.com/logging/docs/setup/java
+                implementation("com.google.cloud:google-cloud-logging-logback:0.123.4-alpha")
             }
         }
 
@@ -148,8 +149,10 @@ application {
 
 
 tasks.getByName<Jar>("jvmJar") {
+    val commandIsShadowJar = project.gradle.startParameter.taskNames.contains("shadowJar")
+    val commandIsAppengineDeploy = project.gradle.startParameter.taskNames.contains("appengineDeploy")
     val taskName =
-        if (project.gradle.startParameter.taskNames.contains("shadowJar")) {
+        if (commandIsShadowJar || commandIsAppengineDeploy) {
             "jsBrowserProductionWebpack"
         } else {
             "jsBrowserDevelopmentWebpack"

@@ -9,21 +9,34 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import pollingManager
 import storage.Storage
-import java.util.UUID
+import kotlin.random.Random
 
 class RoomService {
+    private val logger: Logger = LoggerFactory.getLogger(RoomService::class.java)
+
     private val storage = Storage.newInstance()
+    private val alphanumericChars = ('a'..'z') + ('A'..'Z') + ('0'..'9')
 
     fun createRoom(): Room {
         var newRoom: Room
         do {
-            newRoom = Room(UUID.randomUUID().toString())
+            newRoom = Room(createRandomString())
         } while (storage.getRoom(newRoom.id) != null)
 
         storage.setRoom(newRoom)
+        logger.info("Created room ${newRoom.id}")
         return newRoom
+    }
+
+    private fun createRandomString(): String {
+        return (1..4)
+            .map { Random.nextInt(0, alphanumericChars.size) }
+            .map(alphanumericChars::get)
+            .joinToString("")
     }
 
     fun addParticipant(roomId: String, participantName: String): Room {
@@ -36,6 +49,7 @@ class RoomService {
         room.participants = room.participants.plus(Participant(name = participantName))
 
         storage.setRoom(room)
+        logger.info("Room ${roomId}: added participant '${participantName}'")
         return room
     }
 
@@ -47,6 +61,7 @@ class RoomService {
             ?: throw NoSuchElementException("Participant not found")
 
         storage.setRoom(room)
+        logger.info("Room ${roomId}: participant '${participantName}' voted '${vote}'")
     }
 
     fun revealVotes(roomId: String, participantName: String) {
@@ -57,6 +72,7 @@ class RoomService {
         room.votesRevealed = true
 
         storage.setRoom(room)
+        logger.info("Room ${roomId}: votes revealed")
     }
 
     fun clearVotes(roomId: String, participantName: String) {
@@ -69,6 +85,7 @@ class RoomService {
         }
 
         storage.setRoom(room)
+        logger.info("Room ${roomId}: votes cleared")
     }
 
     suspend fun sync(
@@ -107,6 +124,11 @@ class RoomService {
                 doOnTimeout()
             }
         }
+    }
+
+    fun deleteAllRooms() {
+        storage.deleteAllRooms()
+        logger.info("Deleted all rooms")
     }
 
     private fun assertParticipantIsInRoom(room: Room, participantName: String) {
