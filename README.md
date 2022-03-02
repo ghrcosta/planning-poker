@@ -163,6 +163,7 @@ Not sure if I'll ever do any of these, but...
     * Gradle -> Webpack -> React
   * Reduce minified .js size
   * Improve error handling
+  * Tests :)
 * Backend
   * Try deploying as a free tier e2-micro Compute Engine VM
     * Websocket would work there...
@@ -171,3 +172,4 @@ Not sure if I'll ever do any of these, but...
   * Improve logging
     * Group log messages according to the request that generated them
   * Reduce RAM usage
+  * Tests :)
