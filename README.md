@@ -172,4 +172,5 @@ Not sure if I'll ever do any of these, but...
   * Improve logging
     * Group log messages according to the request that generated them
   * Reduce RAM usage
+  * Execute all deployment steps with a single command
   * Tests :)
