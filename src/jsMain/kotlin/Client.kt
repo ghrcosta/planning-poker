@@ -12,7 +12,7 @@ val HOST =
     if (window.location.hostname == "localhost") {
         "http://localhost:8080"
     } else {
-        "https://ghrcosta-planning-poker.appspot.com"
+        "https://YOUR_GCP_PROJECT.appspot.com"  // Edit to set your own GCP project
     }
 
 object LocalData {

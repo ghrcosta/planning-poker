@@ -1,21 +1,27 @@
 # planning-poker
 
-Simple planning poker application to learn more about Kotlin and
-other different technologies.
+Planning poker application, made as a personal project to learn more about GCP,
+Kotlin and other different technologies.
 
-Made to run in GAE Standard environment, which doesn't support websocket
-so long polling is used instead. Data is stored in Firestore Native mode,
-and the backend is notified of database changes by a Cloud Function that
-listens to Firestore events.
+It was made to run in GAE Standard environment (free tier), which doesn't
+support websocket, so long polling is used instead. Data is stored in Firestore
+Native mode, and the backend is notified of database changes by a Cloud Function
+that listens to Firestore events.
 
-In order to scale, the Cloud Function would have to notify all live
-instances, so they can send the update to all ongoing polling requests.
-Automatic scaling doesn't allow targeting of individual instances
-therefore basic scaling is used instead.
+This application is not scalable. In order to continue using the GCP free tier
+we can only deploy using automatic or basic scaling, and neither support sending
+requests to specific instances (or, in this case, to all of them). Due to these
+limitations the application must always have only one instance, to make sure all
+clients will receive the new data when Cloud Function notifies that the database
+has been modified. If more than one instance is created, the application will
+send the new data to the clients on the instance that received the notification
+and the others would have to wait until their next sync request.
 
-To simplify development and deploy this project uses Kotlin. Even though
-it's still Alpha, I wanted to (1) try it out and (2) learn more about
-Kotlin instead of learning a new language (e.g. for Flutter).
+To simplify development and deploy this project uses Kotlin Multiplatform. Even
+though it's still Alpha, I wanted to (1) try it out and (2) learn more about
+Kotlin instead of learning a new language (e.g. Dart for Flutter).
+
+
 
 ## Environment configuration
 
@@ -80,7 +86,17 @@ Kotlin instead of learning a new language (e.g. for Flutter).
             (will open browser to complete login; check all boxes)
         ```
 
-## Starting emulators
+
+
+## Executing locally
+
+Firestore and Cloud Functions emulators are required, otherwise the
+requests will be sent to the real instances on GCP.
+
+
+
+### Starting emulators
+
 Using Git Bash:
 ```
 $ cd <project_directory>/functions
@@ -88,3 +104,42 @@ $ npm run build
 $ cd ..
 $ firebase emulators:start
 ```
+Access the emulators UI via `http://localhost:8090`
+
+
+
+## Executing the server
+
+Execute `./gradlew run` passing the following environment variables:
+```
+GOOGLE_CLOUD_PROJECT=<YOUR_GCP_PROJECT>;FIRESTORE_EMULATOR_HOST=localhost:8081
+```
+Both variables are required in order for the server to communicate with the
+Firestore emulator.
+
+After the server start running you can access the frontend via
+`http://localhost:8080` (as defined in `jvmMain/resources/application.conf`).
+
+
+
+## Deploy
+
+1. Make sure AppEngine and Cloud Functions are both enabled on you GCP project.
+2. Search for `YOUR_GCP_PROJECT` and replace with your own GCP project name.
+3. Deploy the backend
+   ```
+   ./gradlew appengineDeploy
+   ```
+4. Deploy the Cloud function
+   ```
+   $ cd <project_directory>/functions
+   $ npm install
+   $ npm run build
+   $ firebase deploy --only functions
+       (if ESLint complains, make the necessary changes and try deploying again)
+   ```
+5. Deploy Cron job
+   ```
+   $ cd <project_directory>
+   $ gcloud app deploy cron.yaml
+   ```
