@@ -128,7 +128,7 @@ After the server start running you can access the frontend via
 2. Search for `YOUR_GCP_PROJECT` and replace with your own GCP project name.
 3. Deploy the backend
    ```
-   ./gradlew appengineDeploy
+   ./gradlew clean appengineDeploy
    ```
 4. Deploy the Cloud function
    ```
@@ -143,3 +143,21 @@ After the server start running you can access the frontend via
    $ cd <project_directory>
    $ gcloud app deploy cron.yaml
    ```
+
+
+
+## Improvement ideas
+
+Not sure if I'll ever do any of these, but...
+
+* Frontend
+  * Frontend makeover
+    * Use more Material UI components; learn how to properly change their CSS
+  * Set production/development links via environment variable
+    * Gradle -> Webpack -> React
+  * Reduce minified .js size
+* Backend
+  * Try deploying as a free tier e2-micro Compute Engine VM
+    * Websocket would work there...
+  * Improve startup time
+    * Automatic scaling with custom settings? Quarkus? Something else?

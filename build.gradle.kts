@@ -181,6 +181,9 @@ tasks {
         // At the same time, remove the minification mapping file since we don't need to distribute it.
         from("$buildDir/distributions/").exclude("*.map")
 
+        // Required by Firestore - https://stackoverflow.com/a/63474092
+        mergeServiceFiles()
+
         archiveFileName.set(jarWithDependenciesFileName)
     }
 

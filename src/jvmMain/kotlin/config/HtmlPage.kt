@@ -7,9 +7,12 @@ import kotlinx.html.head
 import kotlinx.html.id
 import kotlinx.html.link
 import kotlinx.html.script
+import kotlinx.html.title
 
 fun HTML.defaultPage() {
     head {
+        title("Planning Poker")
+
         // Roboto font, used by Material UI components
         link(rel = "stylesheet", href = "https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap")
     }
