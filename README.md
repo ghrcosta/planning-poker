@@ -143,6 +143,12 @@ After the server start running you can access the frontend via
    $ cd <project_directory>
    $ gcloud app deploy cron.yaml
    ```
+6. (OPTIONAL) Clean up artifacts from AppEngine deploy
+
+   This is not required, but will help the GCP project stay in the free tier.
+   See [link](https://stackoverflow.com/q/42947918),
+   [link](https://stackoverflow.com/q/63578581).
+   1. Access `https://console.cloud.google.com/gcr`, delete any old builds
 
 
 
@@ -156,8 +162,12 @@ Not sure if I'll ever do any of these, but...
   * Set production/development links via environment variable
     * Gradle -> Webpack -> React
   * Reduce minified .js size
+  * Improve error handling
 * Backend
   * Try deploying as a free tier e2-micro Compute Engine VM
     * Websocket would work there...
   * Improve startup time
     * Automatic scaling with custom settings? Quarkus? Something else?
+  * Improve logging
+    * Group log messages according to the request that generated them
+  * Reduce RAM usage
