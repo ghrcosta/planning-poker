@@ -1,7 +1,7 @@
 # planning-poker
 
-Planning poker application, made as a personal project to learn more about GCP,
-Kotlin and other different technologies.
+Planning poker application made in 4 days as a small, personal project to learn
+more about GCP, Kotlin and other different technologies.
 
 It was made to run in GAE Standard environment (free tier), which doesn't
 support websocket, so long polling is used instead. Data is stored in Firestore
