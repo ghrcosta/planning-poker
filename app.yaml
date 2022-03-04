@@ -3,7 +3,7 @@ runtime: java11
 
 # The type of virtual machine GCP will use to run the application
 # https://cloud.google.com/appengine/docs/standard#instance_classes
-F# https://cloud.google.com/appengine/quotas#Deployments
+# https://cloud.google.com/appengine/quotas#Deployments
 instance_class: F2
 
 # This application is NOT scalable. The aim was to deploy to GAE and forever stay in the free tier. That means using the
