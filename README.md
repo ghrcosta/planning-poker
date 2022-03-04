@@ -1,21 +1,18 @@
 # planning-poker
 
-Planning poker application made in 4 days as a small, personal project to learn
-more about GCP, Kotlin and other different technologies.
+Planning poker tool made in 4 days as a small, personal project to learn more
+about GCP, Kotlin and other different technologies.
 
 It was made to run in GAE Standard environment (free tier), which doesn't
 support websocket, so long polling is used instead. Data is stored in Firestore
-Native mode, and the backend is notified of database changes by a Cloud Function
+Native mode and the backend is notified of database changes by a Cloud Function
 that listens to Firestore events.
 
-This application is not scalable. In order to continue using the GCP free tier
-we can only deploy using automatic or basic scaling, and neither support sending
-requests to specific instances (or, in this case, to all of them). Due to these
-limitations the application must always have only one instance, to make sure all
-clients will receive the new data when Cloud Function notifies that the database
-has been modified. If more than one instance is created, the application will
-send the new data to the clients on the instance that received the notification
-and the others would have to wait until their next sync request.
+This application is not scalable. To continue on GAE free tier we can only
+deploy using automatic or basic scaling, and neither support sending requests
+to specific instances (or, in this case, to all of them). The Cloud function
+notification is only received by one instance, so users polling on different
+instances will only receive the update the next time they sync.
 
 To simplify development and deploy this project uses Kotlin Multiplatform. Even
 though it's still Alpha, I wanted to (1) try it out and (2) learn more about
