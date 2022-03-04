@@ -1,15 +1,22 @@
 import components.addParticipant.AddParticipantComponent
 import components.index.IndexComponent
 import components.room.RoomUI
+import config.FirestoreHelper
 import external.decodeURIComponent
+import external.firebase.connectFirestoreEmulator
 import kotlinx.browser.document
 import kotlinx.browser.window
 import react.create
 import react.dom.render
 
+
+val firestore = FirestoreHelper.initFirestore()
+
 // Yes, totally a workaround... The first of many on this frontend :)
 val HOST =
     if (window.location.hostname == "localhost") {
+        // https://firebase.google.com/docs/emulator-suite/connect_firestore#web-version-9
+        connectFirestoreEmulator(firestore, "localhost", 8081)
         "http://localhost:8080"
     } else {
         "https://YOUR_GCP_PROJECT.appspot.com"  // Edit to set your own GCP project

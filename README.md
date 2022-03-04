@@ -1,21 +1,19 @@
 # planning-poker
 
-Planning poker tool made in 4 days as a small, personal project to learn more
-about GCP, Kotlin and other different technologies.
+Planning poker tool made in about 5 days as a small, personal project to learn
+more about GCP, Kotlin and other different technologies.
 
 It was made to run in GAE Standard environment (free tier), which doesn't
-support websocket, so long polling is used instead. Data is stored in Firestore
-Native mode and the backend is notified of database changes by a Cloud Function
-that listens to Firestore events. Response time is good, usually only a second
-or so, though once in a while there's some extra delay between the Cloud
-function sending the update notification to the backend and the backend sending
-the new data to clients.
-
-This application is not scalable. To continue on GAE free tier we can only
-deploy using automatic or basic scaling, and neither support sending requests
-to specific instances (or, in this case, to all of them). The Cloud function
-notification is only received by one instance, so users polling on different
-instances will only receive the update the next time they sync.
+support websocket. Two versions have been implemented to solve this limitation:
+* Version 1 implements long polling and a Cloud Function that listens to
+  Firestore events to notify the backend. Response time is good, usually ~1s,
+  though once in a while there's some extra delay. This version is not scalable
+  because it depends on the Cloud function notifying all instances, but GAE
+  automatic and basic scaling methods (which have free tier) do not support
+  sending requests to specific instances.
+* Version 2 removes long polling and instead the clients receive updates from
+  Firestore directly using the Firebase javascript SDK. This reduced the load on
+  the backend and sped up response time slightly.
 
 To simplify development and deploy this project uses Kotlin Multiplatform. Even
 though it's still Alpha, I wanted to (1) try it out and (2) learn more about
@@ -100,6 +98,7 @@ requests will be sent to the real instances on GCP.
 Using Git Bash:
 ```
 $ cd <project_directory>/functions
+$ npm install
 $ npm run build
 $ cd ..
 $ firebase emulators:start
@@ -125,25 +124,24 @@ After the server start running you can access the frontend via
 ## Deploy
 
 1. Make sure AppEngine and Cloud Functions are both enabled on you GCP project.
-2. Search for `YOUR_GCP_PROJECT` and replace with your own GCP project name.
-3. Deploy the backend
+2. Search for `YOUR_GCP_PROJECT` and `YOUR_GCP_DATA_HERE` replace with your own
+   GCP project name and data.
+3. If the backend is running locally, stop it, otherwise GAE deploy will fail
+4. Deploy the backend
    ```
    ./gradlew clean appengineDeploy
-   ```
-4. Deploy the Cloud function
-   ```
-   $ cd <project_directory>/functions
-   $ npm install
-   $ npm run build
-   $ firebase deploy --only functions
-       (if ESLint complains, make the necessary changes and try deploying again)
    ```
 5. Deploy Cron job
    ```
    $ cd <project_directory>
    $ gcloud app deploy cron.yaml
    ```
-6. (OPTIONAL) Clean up artifacts from AppEngine deploy
+6. Deploy Firestore security rules
+   ```
+   $ cd <project_directory>
+   $ firebase deploy --only firestore:rules
+   ```
+7. (OPTIONAL) Clean up artifacts from AppEngine deploy
 
    This is not required, but will help the GCP project stay in the free tier.
    See [link](https://stackoverflow.com/q/42947918),
@@ -168,7 +166,7 @@ Not sure if I'll ever do any of these, but...
   * Try deploying as a free tier e2-micro Compute Engine VM
     * Websocket would work there...
   * Improve startup time
-    * Automatic scaling with custom settings? Quarkus? Something else?
+    * Quarkus? Something else?
   * Improve logging
     * Group log messages according to the request that generated them
   * Reduce RAM usage

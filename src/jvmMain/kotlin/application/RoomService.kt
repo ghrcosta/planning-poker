@@ -2,16 +2,8 @@ package application
 
 import Participant
 import Room
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import pollingManager
 import storage.Storage
 import kotlin.random.Random
 
@@ -86,44 +78,6 @@ class RoomService {
 
         storage.setRoom(room)
         logger.info("Room ${roomId}: votes cleared")
-    }
-
-    suspend fun sync(
-        roomId: String,
-        participantName: String,
-        clientRoomState: Room,
-        doOnUpdateReceived: (Room) -> Unit,
-        doOnTimeout: () -> Unit
-    ) {
-        val storage = Storage.newInstance()
-        val room = storage.getRoom(roomId) ?: throw NoSuchElementException("Room not found")
-        assertParticipantIsInRoom(room, participantName)
-
-        if (clientRoomState != room) {
-            // If the client doesn't have the latest data, send it now without waiting for updates. The client
-            // should immediately send another sync request to wait for future updates.
-            doOnUpdateReceived(room)
-
-        } else {
-            // If the client already has the latest data, start long polling to wait until there is an update.
-            // If an update is received before the timeout, it is sent to the client. Otherwise, the client is
-            // instructed to send another sync request.
-
-            val pollingJob = CoroutineScope(Dispatchers.IO).launch {
-                pollingManager.updates.collect { room ->
-                    doOnUpdateReceived(room)
-                    this.cancel()  // Because SharedFlows never complete, they can only be cancelled
-                }
-            }
-            try {
-                withTimeout(PollingManager.POLLING_TIMEOUT_MILLISECONDS) {
-                    pollingJob.join()
-                }
-            } catch (e: TimeoutCancellationException) {
-                pollingJob.cancel()
-                doOnTimeout()
-            }
-        }
     }
 
     fun deleteAllRooms() {

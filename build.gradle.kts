@@ -130,6 +130,8 @@ kotlin {
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-css:$reactVersion")
                 implementation("org.jetbrains.kotlin-wrappers:kotlin-react-dom:$reactVersion")
 
+                implementation(npm("firebase", "9.4.1"))
+
                 // Material UI (MUI) - Ready-to-use UI components
                 // MIT License
                 // https://mui.com/pt/core/

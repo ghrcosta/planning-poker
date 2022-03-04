@@ -1,4 +1,3 @@
-import application.PollingManager
 import config.configureRouting
 import config.setup
 import io.ktor.application.Application
@@ -11,8 +10,6 @@ import io.ktor.serialization.json
 import io.ktor.server.netty.EngineMain
 import io.ktor.sessions.Sessions
 import io.ktor.sessions.cookie
-
-val pollingManager = PollingManager()
 
 // See resources/application.conf
 fun main(args: Array<String>) = EngineMain.main(args)
