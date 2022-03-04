@@ -6,7 +6,10 @@ about GCP, Kotlin and other different technologies.
 It was made to run in GAE Standard environment (free tier), which doesn't
 support websocket, so long polling is used instead. Data is stored in Firestore
 Native mode and the backend is notified of database changes by a Cloud Function
-that listens to Firestore events.
+that listens to Firestore events. Response time is good, usually only a second
+or so, though once in a while there's some extra delay between the Cloud
+function sending the update notification to the backend and the backend sending
+the new data to clients.
 
 This application is not scalable. To continue on GAE free tier we can only
 deploy using automatic or basic scaling, and neither support sending requests
