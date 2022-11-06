@@ -113,26 +113,43 @@ After the server is running you can access the frontend via
 2. Search for `YOUR_GCP_PROJECT` and `YOUR_GCP_DATA_HERE` replace with your own
    GCP project name and data (see Firebase console > Project settings).
 3. If the backend is running locally, stop it, otherwise GAE deploy will fail
-4. Deploy the backend
+4. Make sure Google Cloud SDK is set up correctly:
+   * If you have other projects (or just installed Google Cloud SDK):
+       ```
+       $ gcloud config set project <YOUR_GCP_PROJECT>
+       ```
+   * If you have multiple accounts (or just installed Google Cloud SDK):
+       ```
+       $ gcloud config set account <YOUR_GCP_USER_ACCOUNT_EMAIL>
+       ```
+   * If it's been a while since the last time you used Google Cloud SDK
+     (or just installed it):
+       ```
+       $ gcloud auth login
+       ```
+5. Deploy the backend
    ```
    ./gradlew clean appengineDeploy
    ```
-5. Deploy Cron job
+6. Deploy Cron job
    ```
    $ cd <project_directory>
    $ gcloud app deploy cron.yaml
    ```
-6. Deploy Firestore security rules
+7. Deploy Firestore security rules
    ```
    $ cd <project_directory>
    $ firebase deploy --only firestore:rules
    ```
-7. (OPTIONAL) Clean up artifacts from AppEngine deploy
+8. (OPTIONAL but RECOMMENDED) Clean up artifacts from AppEngine deploy
 
    This is not required, but will help the GCP project stay in the free tier.
    See [link](https://stackoverflow.com/q/42947918),
    [link](https://stackoverflow.com/q/63578581).
-   1. Access `https://console.cloud.google.com/gcr`, delete any old builds
+   1. Access `https://console.cloud.google.com/gcr`, delete all files from this
+      project
+   2. Access `https://console.cloud.google.com/storage`, delete all files in
+      "staging" and "artifacts" buckets
 
 
 
