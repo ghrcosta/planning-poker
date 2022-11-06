@@ -109,7 +109,7 @@ After the server is running you can access the frontend via
 
 ## Deploy
 
-1. Make sure AppEngine and Cloud Functions are both enabled on you GCP project.
+1. Make sure AppEngine and Cloud Build API are both enabled on you GCP project.
 2. Search for `YOUR_GCP_PROJECT` and `YOUR_GCP_DATA_HERE` replace with your own
    GCP project name and data (see Firebase console > Project settings).
 3. If the backend is running locally, stop it, otherwise GAE deploy will fail

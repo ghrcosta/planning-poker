@@ -21,6 +21,7 @@ import org.w3c.dom.HTMLButtonElement
 import org.w3c.dom.HTMLDivElement
 import org.w3c.dom.HTMLElement
 import org.w3c.dom.HTMLLIElement
+import org.w3c.dom.HTMLSpanElement
 import org.w3c.dom.HTMLUListElement
 import org.w3c.dom.get
 import org.w3c.dom.set
@@ -34,6 +35,7 @@ import react.dom.html.ReactHTML.div
 import react.dom.html.ReactHTML.span
 import react.dom.html.ReactHTML.ul
 import react.dom.render
+import voteToFloat
 
 // https://developer.mozilla.org/en-US/docs/Learn/HTML/Howto/Use_data_attributes
 object DataAttribute {
@@ -51,6 +53,8 @@ object RoomUI {
 private const val revealButtonId = "revealButton"
 private const val clearButtonId = "clearButton"
 private const val voteListRootId = "voteListRoot"
+private const val voteAverageRootId = "voteAverageRootId"
+private const val voteAverageValueId = "voteAverageValueId"
 
 private val RoomComponent = FC<Props> {
     div {
@@ -149,6 +153,30 @@ private val RoomComponent = FC<Props> {
             }
         }
     }
+    div {
+        css {
+            marginTop = 40.px
+            textAlign = TextAlign.center
+            display = Display.none
+        }
+        id = voteAverageRootId
+
+        span {
+            css {
+                marginRight = 4.px
+                fontFamily = "roboto".unsafeCast<FontFamily>()
+                fontSize = FontSize.xxLarge
+            }
+            +"Average: "
+        }
+        span {
+            css {
+                fontFamily = "roboto".unsafeCast<FontFamily>()
+                fontSize = FontSize.xxLarge
+            }
+            id = voteAverageValueId
+        }
+    }
 }
 
 private val onMouseOverCard = { event: MouseEvent<HTMLDivElement, *> ->
@@ -242,6 +270,17 @@ fun updateRoomUI() {
             voteListElement.appendChild(newItem)
             render(UserVoteItem(participant, room.votesRevealed).create(), newItem)
         }
+    }
+
+    val voteAverageRootElement = document.getElementById(voteAverageRootId)  as HTMLDivElement
+    if (room.votesRevealed) {
+        voteAverageRootElement.style.setProperty("display", "block")
+
+        val voteAverageValueElement = document.getElementById(voteAverageValueId) as HTMLSpanElement
+        val validVotes = room.participants.mapNotNull { voteToFloat(it.vote) }
+        voteAverageValueElement.innerText = (validVotes.sum()/validVotes.size).toString()
+    } else {
+        voteAverageRootElement.style.setProperty("display", "none")
     }
 }
 

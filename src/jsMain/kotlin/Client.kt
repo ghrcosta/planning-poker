@@ -38,6 +38,15 @@ object LocalData {
     )
 }
 
+fun voteToFloat(voteValue: String?): Float? {
+    return voteValue?.let {
+        if (it == LocalData.voteOptions["voteButton_one_half"]) {
+           return 0.5f
+        }
+        it.toFloatOrNull()
+    }
+}
+
 fun main() {
     updateNavigation()
 }
