@@ -1,7 +1,7 @@
 # planning-poker
 
-Planning poker tool made in about 5 days as a small, personal project to learn
-more about GCP, Kotlin and other different technologies.
+Planning poker tool made as a small, personal project to learn more about GCP,
+Kotlin and other different technologies.
 
 It was made to run in GAE Standard environment (free tier), which doesn't
 support websocket. In the current version, clients receive updates from 
@@ -22,19 +22,15 @@ Kotlin instead of learning a new language (e.g. Dart for Flutter).
        Unix-style`
         * Deploy will fail if the files have line separators with
           Windows style (CRLF)!
-3. Install [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
-    1. Go to settings and make sure Kotlin code style is set to be the
-       one from the project
-    2. To make push via IDE work, access 
-       https://source.developers.google.com/new-password
-       and follow the steps
-4. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
+3. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
     1. Use the Git Bash command line to install the required components:
         ```
         $ gcloud components install app-engine-java
         ```
-5. Clone project
-6. Install NPM
+4. Install [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
+    1. Open the project, go to Settings and make sure Kotlin code style is set
+       to be the one from the project
+5. Install NPM
     * For Windows:
         1. Install https://github.com/coreybutler/nvm-windows
         2. Open Windows command prompt (or Git Bash) \***as admin**\*
@@ -44,7 +40,7 @@ Kotlin instead of learning a new language (e.g. Dart for Flutter).
             $ nvm use latest
             ```
            *Note*: at the time this readme was written, latest=19.0.1
-7. Install Firebase CLI + Emulators
+6. Install Firebase CLI + Emulators
     ```
     $ npm install -g firebase-tools
     ```
@@ -62,17 +58,17 @@ Kotlin instead of learning a new language (e.g. Dart for Flutter).
               are already defined, see firebase.json
             - Select "Download emulators"
         ```
-8. Set up application-default credentials
+7. Optional: Set up application-default credentials
     * This is only required to execute the application locally.
       See https://firebase.google.com/docs/admin/setup#testing_with_gcloud_end_user_credentials
-    * In your GCP project, go to APIs & Services > OAuth consent screen
+    1. In your GCP project, go to APIs & Services > OAuth consent screen
         * Configure it for external usage
         * Add scopes "/auth/userinfo.email" and "openid"
         * Add yourself as a test user
-    * Go to APIs & Services > Credentials
+    2. Go to APIs & Services > Credentials
         * Create a "Desktop" credential, download the json file and put
           it in the project root directory
-    * Execute:
+    3. Execute:
         ```
         $ gcloud auth application-default login --client-id-file=test_oauth_client_id.json
             (will open browser to complete login; check all boxes)
@@ -142,7 +138,7 @@ After the server is running you can access the frontend via
 
 ## Improvement ideas
 
-Not sure if I'll ever do any of these, but...
+Maybe someday...
 
 * Frontend
   * Frontend makeover
