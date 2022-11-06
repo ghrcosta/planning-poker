@@ -4,16 +4,9 @@ Planning poker tool made in about 5 days as a small, personal project to learn
 more about GCP, Kotlin and other different technologies.
 
 It was made to run in GAE Standard environment (free tier), which doesn't
-support websocket. Two versions have been implemented to solve this limitation:
-* Version 1 implements long polling and a Cloud Function that listens to
-  Firestore events to notify the backend. Response time is good, usually ~1s,
-  though once in a while there's some extra delay. This version is not scalable
-  because it depends on the Cloud function notifying all instances, but GAE
-  automatic and basic scaling methods (which have free tier) do not support
-  sending requests to specific instances.
-* Version 2 removes long polling and instead the clients receive updates from
-  Firestore directly using the Firebase javascript SDK. This reduced the load on
-  the backend and sped up response time slightly.
+support websocket. In the current version, clients receive updates from 
+Firestore directly using the Firebase javascript SDK. Compared to long pooling,
+this reduced the load on the backend and sped up response time slightly.
 
 To simplify development and deploy this project uses Kotlin Multiplatform. Even
 though it's still Alpha, I wanted to (1) try it out and (2) learn more about
@@ -44,28 +37,29 @@ Kotlin instead of learning a new language (e.g. Dart for Flutter).
 6. Install NPM
     * For Windows:
         1. Install https://github.com/coreybutler/nvm-windows
-        2. Open Windows command prompt (or Git Bash) as admin
+        2. Open Windows command prompt (or Git Bash) \***as admin**\*
         3. Execute:
             ```
             $ nvm install latest
             $ nvm use latest
             ```
+           *Note*: at the time this readme was written, latest=19.0.1
 7. Install Firebase CLI + Emulators
     ```
     $ npm install -g firebase-tools
     ```
-    * Using CMD (Win+R > cmd) -- doesn't work on Git Bash (as of 9.34.0):
+    * Using CMD (Win+R > cmd) -- doesn't work properly on Git Bash (at least, not on 2.38.1):
         ```
         $ cd <project_directory>
         $ firebase login
             (will open browser to complete login)
+            - If you were already logged in, execute:
+                $ firebase login --reauth
+                    (should open browser to complete login)
         $ firebase init emulators
             - Select your GCP project or create a new one
             - If you are in the correct project directory the settings
-              are already defined:
-                * Functions emulator on port 5050
-                * Firestore emulator on port 8081
-                * Emulator UI enabled on port 8090
+              are already defined, see firebase.json
             - Select "Download emulators"
         ```
 8. Set up application-default credentials
@@ -88,35 +82,31 @@ Kotlin instead of learning a new language (e.g. Dart for Flutter).
 
 ## Executing locally
 
-Firestore and Cloud Functions emulators are required, otherwise the
-requests will be sent to the real instances on GCP.
+Firestore emulator is required, otherwise the requests will be sent to the real
+instance on GCP.
 
 
 
-### Starting emulators
+1. Start emulators
+    * ```
+      $ cd <project_directory>
+      $ firebase emulators:start
+      ```
+    * Access the emulators UI via `http://localhost:8090`
 
-Using Git Bash:
-```
-$ cd <project_directory>/functions
-$ npm install
-$ npm run build
-$ cd ..
-$ firebase emulators:start
-```
-Access the emulators UI via `http://localhost:8090`
+2. Run server
+    1. In `src/jsMain/config/Firebase.kt`, setup Firebase parameters by
+       replacing `YOUR_GCP_DATA_HERE` with real values from your Firebase 
+       project (see Firebase console > Project settings). This is required even
+       for local execution.
+    2. Execute `./gradlew run` passing the following environment variables:
+        ```
+        GOOGLE_CLOUD_PROJECT=<YOUR_GCP_PROJECT>;FIRESTORE_EMULATOR_HOST=localhost:8081
+        ```
+        Both variables are required in order for the server to communicate with
+        the Firestore emulator.
 
-
-
-## Executing the server
-
-Execute `./gradlew run` passing the following environment variables:
-```
-GOOGLE_CLOUD_PROJECT=<YOUR_GCP_PROJECT>;FIRESTORE_EMULATOR_HOST=localhost:8081
-```
-Both variables are required in order for the server to communicate with the
-Firestore emulator.
-
-After the server start running you can access the frontend via
+After the server is running you can access the frontend via
 `http://localhost:8080` (as defined in `jvmMain/resources/application.conf`).
 
 
@@ -125,7 +115,7 @@ After the server start running you can access the frontend via
 
 1. Make sure AppEngine and Cloud Functions are both enabled on you GCP project.
 2. Search for `YOUR_GCP_PROJECT` and `YOUR_GCP_DATA_HERE` replace with your own
-   GCP project name and data.
+   GCP project name and data (see Firebase console > Project settings).
 3. If the backend is running locally, stop it, otherwise GAE deploy will fail
 4. Deploy the backend
    ```
