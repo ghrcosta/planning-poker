@@ -1,0 +1,4 @@
+cron:
+- description: "Monthly database cleanup"
+  url: /task/cleanup
+  schedule: first saturday of month 00:00
