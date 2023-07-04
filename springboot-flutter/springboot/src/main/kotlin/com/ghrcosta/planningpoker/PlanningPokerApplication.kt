@@ -30,7 +30,9 @@ class PlanningPokerApplication {
 @ConditionalOnProperty(name= ["allow-cross-origin"], havingValue="true")
 class WebConfig : WebMvcConfigurer {
 	override fun addCorsMappings(registry: CorsRegistry) {
-		registry.addMapping("/**")
+		val log = LoggerFactory.getLogger(WebConfig::class.java)
+		log.info("Setting CORS allowed in all paths")
+		registry.addMapping("/**").allowedMethods("HEAD", "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS")
 	}
 }
 

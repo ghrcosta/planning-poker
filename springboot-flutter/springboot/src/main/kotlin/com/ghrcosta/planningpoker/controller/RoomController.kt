@@ -8,7 +8,6 @@ import com.ghrcosta.planningpoker.exception.ParticipantNotFoundException
 import com.ghrcosta.planningpoker.exception.RoomNotFoundException
 import com.ghrcosta.planningpoker.service.RoomService
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.headers.Header
 import io.swagger.v3.oas.annotations.media.Content
 import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -47,11 +46,8 @@ class RoomController(private val roomService: RoomService) {
     @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary = "Add new participant to a room",
-        description = "Adds the given name as a participant in the given room and sets cookies used by other requests.")
-    @ApiResponse(
-        responseCode = "201",
-        description = "Database updated",
-        headers = [Header(name = "Set-Cookie", description = "Sets cookies for 'roomId' and 'participant'")])
+        description = "Adds the given name as a participant in the given room (if it's unique) and returns a session " +
+                      "object to be used by following requests.")
     fun addParticipant(
         @PathVariable("roomId") roomId: String,
         @RequestParam("name") participantName: String,
@@ -64,10 +60,7 @@ class RoomController(private val roomService: RoomService) {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Set participant vote",
-        description = "Sets vote of a participant in the room. Both room and participant are retrieved from cookies.")
-    @ApiResponse(
-        responseCode = "204",
-        description = "Database updated")
+        description = "Sets vote of a participant in the room. Both room and participant are retrieved from session.")
     fun setParticipantVote(
         @PathVariable("roomId") roomId: String,
         @RequestParam("value") vote: String,
@@ -82,10 +75,7 @@ class RoomController(private val roomService: RoomService) {
     @Operation(
         summary = "Reveal votes in the room",
         description = "Reveals votes from everyone in the room. Only someone in the room can execute it. " +
-                      "Both room and participant are retrieved from cookies.")
-    @ApiResponse(
-        responseCode = "204",
-        description = "Database updated")
+                      "Both room and participant are retrieved from session.")
     fun revealVotes(
         @PathVariable("roomId") roomId: String,
         @RequestBody session: SessionDTO,
@@ -100,10 +90,7 @@ class RoomController(private val roomService: RoomService) {
         summary = "Delete votes in the room",
         description = "Remove votes from everyone in the room and sets vote visibility to hidden. " +
                       "Only someone in the room can execute it. " +
-                      "Both room and participant are retrieved from cookies.")
-    @ApiResponse(
-        responseCode = "204",
-        description = "Database updated")
+                      "Both room and participant are retrieved from session.")
     fun clearVotes(
         @PathVariable("roomId") roomId: String,
         @RequestBody session: SessionDTO,
