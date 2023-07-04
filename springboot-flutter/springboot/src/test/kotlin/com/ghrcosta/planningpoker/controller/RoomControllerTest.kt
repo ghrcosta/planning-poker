@@ -3,7 +3,7 @@ package com.ghrcosta.planningpoker.controller
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.ghrcosta.planningpoker.dto.RoomDTO
-import jakarta.servlet.http.Cookie
+import com.ghrcosta.planningpoker.dto.SessionDTO
 import org.junit.jupiter.api.Nested
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc
@@ -15,7 +15,6 @@ import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPat
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import kotlin.test.BeforeTest
 import kotlin.test.Test
-import kotlin.test.assertTrue
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -48,18 +47,14 @@ class RoomControllerTest {
         }
 
         @Test
-        fun addParticipantReturnsNoContentAndSetsCookies() {
-            val requestResult =
-                mockMvc
-                    .perform(
-                        put("/${room.id}/addParticipant")
-                            .param("name", aPersonName))
-                    .andExpect(status().isNoContent)
-                    .andReturn()
-
-            val cookies = requestResult.response.cookies
-            assertTrue { cookies.any { it.name == COOKIE_ROOM } }
-            assertTrue { cookies.any { it.name == COOKIE_PARTICIPANT && it.value == aPersonName } }
+        fun addParticipantReturnsCreatedSession() {
+            mockMvc
+                .perform(
+                    put("/${room.id}/addParticipant")
+                        .param("name", aPersonName))
+                .andExpect(status().isCreated)
+                .andExpect(jsonPath("$.roomId").value(room.id))
+                .andExpect(jsonPath("$.participantName").value(aPersonName))
         }
 
         @Test
@@ -96,7 +91,7 @@ class RoomControllerTest {
     @Nested
     inner class VoteTest {
         private lateinit var room: RoomDTO
-        private lateinit var cookies: Array<Cookie>
+        private lateinit var session: SessionDTO
         private val aPersonName = "person"
 
         @BeforeTest
@@ -105,11 +100,12 @@ class RoomControllerTest {
             val createRequestJsonResult = mockMvc.perform(post("/create")).andReturn().response.contentAsString
             room = jacksonObjectMapper().readValue<RoomDTO>(createRequestJsonResult)
 
-            // Add test participant and get the cookies required for further requests
-            cookies =
+            // Add test participant and get the session required for further requests
+            val addParticipantJsonResult =
                 mockMvc
                     .perform(put("/${room.id}/addParticipant").param("name", aPersonName))
-                    .andReturn().response.cookies
+                    .andReturn().response.contentAsString
+            session = jacksonObjectMapper().readValue<SessionDTO>(addParticipantJsonResult)
         }
 
         @Test
@@ -118,7 +114,8 @@ class RoomControllerTest {
                 .perform(
                     put("/${room.id}/vote")
                         .param("value", "1")
-                        .cookie(*cookies))
+                        .content(jacksonObjectMapper().writeValueAsString(session))
+                        .contentType("application/json"))
                 .andExpect(status().isNoContent)
         }
 
@@ -127,7 +124,7 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     put("/${room.id}/vote")
-                        .cookie(*cookies))
+                        .content(jacksonObjectMapper().writeValueAsString(session)))
                 .andExpect(status().isBadRequest)
         }
 
@@ -137,9 +134,9 @@ class RoomControllerTest {
                 .perform(
                     put("/${room.id}/vote")
                         .param("value", "1")
-                        .cookie(
-                            Cookie(COOKIE_ROOM, room.id),
-                            Cookie(COOKIE_PARTICIPANT, "invalidParticipant")))
+                        .content(jacksonObjectMapper().writeValueAsString(
+                            session.copy(participantName = "invalidParticipant")))
+                        .contentType("application/json"))
                 .andExpect(status().isNotFound)
         }
 
@@ -149,9 +146,9 @@ class RoomControllerTest {
                 .perform(
                     put("/roomThatDoesNotExist/vote")
                         .param("value", "1")
-                        .cookie(
-                            Cookie(COOKIE_ROOM, "roomThatDoesNotExist"),
-                            Cookie(COOKIE_PARTICIPANT, aPersonName)))
+                        .content(jacksonObjectMapper().writeValueAsString(
+                            session.copy(roomId = "roomThatDoesNotExist")))
+                        .contentType("application/json"))
                 .andExpect(status().isNotFound)
         }
 
@@ -159,34 +156,37 @@ class RoomControllerTest {
         fun voteToWrongRoomReturnsBadRequest() {
             mockMvc
                 .perform(
-                    put("/aDifferentRoomFromCookie/vote")
+                    put("/aDifferentRoomFromSession/vote")
                         .param("value", "1")
-                        .cookie(*cookies))
+                        .content(jacksonObjectMapper().writeValueAsString(session))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun voteWithoutRoomIdCookieReturnsBadRequest() {
+        fun voteWithoutRoomIdSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     put("/${room.id}/vote")
                         .param("value", "1")
-                        .cookie(*cookies.filterNot { it.name == COOKIE_ROOM }.toTypedArray()))
+                        .content(jacksonObjectMapper().writeValueAsString(session.copy(roomId = "")))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun voteWithoutParticipantCookieReturnsBadRequest() {
+        fun voteWithoutParticipantSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     put("/${room.id}/vote")
                         .param("value", "1")
-                        .cookie(*cookies.filterNot { it.name == COOKIE_PARTICIPANT }.toTypedArray()))
+                        .content(jacksonObjectMapper().writeValueAsString(session.copy(participantName = "")))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun voteWithoutCookiesReturnsBadRequest() {
+        fun voteWithoutSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     put("/${room.id}/vote")
@@ -198,7 +198,7 @@ class RoomControllerTest {
     @Nested
     inner class RevealVotesTest {
         private lateinit var room: RoomDTO
-        private lateinit var cookies: Array<Cookie>
+        private lateinit var session: SessionDTO
         private val aPersonName = "person"
 
         @BeforeTest
@@ -207,11 +207,12 @@ class RoomControllerTest {
             val createRequestJsonResult = mockMvc.perform(post("/create")).andReturn().response.contentAsString
             room = jacksonObjectMapper().readValue<RoomDTO>(createRequestJsonResult)
 
-            // Add test participant and get the cookies required for further requests
-            cookies =
+            // Add test participant and get the session required for further requests
+            val addParticipantJsonResult =
                 mockMvc
                     .perform(put("/${room.id}/addParticipant").param("name", aPersonName))
-                    .andReturn().response.cookies
+                    .andReturn().response.contentAsString
+            session = jacksonObjectMapper().readValue<SessionDTO>(addParticipantJsonResult)
         }
 
         @Test
@@ -219,7 +220,8 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     post("/${room.id}/revealVotes")
-                        .cookie(*cookies))
+                        .content(jacksonObjectMapper().writeValueAsString(session))
+                        .contentType("application/json"))
                 .andExpect(status().isNoContent)
         }
 
@@ -228,9 +230,9 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     post("/${room.id}/revealVotes")
-                        .cookie(
-                            Cookie(COOKIE_ROOM, room.id),
-                            Cookie(COOKIE_PARTICIPANT, "invalidParticipant")))
+                        .content(jacksonObjectMapper().writeValueAsString(
+                            session.copy(participantName = "invalidParticipant")))
+                        .contentType("application/json"))
                 .andExpect(status().isNotFound)
         }
 
@@ -239,9 +241,9 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     post("/roomThatDoesNotExist/revealVotes")
-                        .cookie(
-                            Cookie(COOKIE_ROOM, "roomThatDoesNotExist"),
-                            Cookie(COOKIE_PARTICIPANT, aPersonName)))
+                        .content(jacksonObjectMapper().writeValueAsString(
+                            session.copy(roomId = "roomThatDoesNotExist")))
+                        .contentType("application/json"))
                 .andExpect(status().isNotFound)
         }
 
@@ -249,31 +251,34 @@ class RoomControllerTest {
         fun revealVotesToWrongRoomReturnsBadRequest() {
             mockMvc
                 .perform(
-                    post("/aDifferentRoomFromCookie/revealVotes")
-                        .cookie(*cookies))
+                    post("/aDifferentRoomFromSession/revealVotes")
+                        .content(jacksonObjectMapper().writeValueAsString(session))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun revealVotesWithoutRoomIdCookieReturnsBadRequest() {
+        fun revealVotesWithoutRoomIdSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     post("/${room.id}/revealVotes")
-                        .cookie(*cookies.filterNot { it.name == COOKIE_ROOM }.toTypedArray()))
+                        .content(jacksonObjectMapper().writeValueAsString(session.copy(roomId = "")))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun revealVotesWithoutParticipantCookieReturnsBadRequest() {
+        fun revealVotesWithoutParticipantSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     post("/${room.id}/revealVotes")
-                        .cookie(*cookies.filterNot { it.name == COOKIE_PARTICIPANT }.toTypedArray()))
+                        .content(jacksonObjectMapper().writeValueAsString(session.copy(participantName = "")))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun revealVotesWithoutCookiesReturnsBadRequest() {
+        fun revealVotesWithoutSessionReturnsBadRequest() {
             mockMvc
                 .perform(post("/${room.id}/revealVotes"))
                 .andExpect(status().isBadRequest)
@@ -283,7 +288,7 @@ class RoomControllerTest {
     @Nested
     inner class ClearVotesTest {
         private lateinit var room: RoomDTO
-        private lateinit var cookies: Array<Cookie>
+        private lateinit var session: SessionDTO
         private val aPersonName = "person"
 
         @BeforeTest
@@ -292,11 +297,12 @@ class RoomControllerTest {
             val createRequestJsonResult = mockMvc.perform(post("/create")).andReturn().response.contentAsString
             room = jacksonObjectMapper().readValue<RoomDTO>(createRequestJsonResult)
 
-            // Add test participant and get the cookies required for further requests
-            cookies =
+            // Add test participant and get the session required for further requests
+            val addParticipantJsonResult =
                 mockMvc
                     .perform(put("/${room.id}/addParticipant").param("name", aPersonName))
-                    .andReturn().response.cookies
+                    .andReturn().response.contentAsString
+            session = jacksonObjectMapper().readValue<SessionDTO>(addParticipantJsonResult)
         }
 
         @Test
@@ -304,7 +310,8 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     post("/${room.id}/clearVotes")
-                        .cookie(*cookies))
+                        .content(jacksonObjectMapper().writeValueAsString(session))
+                        .contentType("application/json"))
                 .andExpect(status().isNoContent)
         }
 
@@ -313,9 +320,9 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     post("/${room.id}/clearVotes")
-                        .cookie(
-                            Cookie(COOKIE_ROOM, room.id),
-                            Cookie(COOKIE_PARTICIPANT, "invalidParticipant")))
+                        .content(jacksonObjectMapper().writeValueAsString(
+                            session.copy(participantName = "invalidParticipant")))
+                        .contentType("application/json"))
                 .andExpect(status().isNotFound)
         }
 
@@ -324,9 +331,9 @@ class RoomControllerTest {
             mockMvc
                 .perform(
                     post("/roomThatDoesNotExist/clearVotes")
-                        .cookie(
-                            Cookie(COOKIE_ROOM, "roomThatDoesNotExist"),
-                            Cookie(COOKIE_PARTICIPANT, aPersonName)))
+                        .content(jacksonObjectMapper().writeValueAsString(
+                            session.copy(roomId = "roomThatDoesNotExist")))
+                        .contentType("application/json"))
                 .andExpect(status().isNotFound)
         }
 
@@ -334,39 +341,37 @@ class RoomControllerTest {
         fun clearVotesToWrongRoomReturnsBadRequest() {
             mockMvc
                 .perform(
-                    post("/aDifferentRoomFromCookie/clearVotes")
-                        .cookie(*cookies))
+                    post("/aDifferentRoomFromSession/clearVotes")
+                        .content(jacksonObjectMapper().writeValueAsString(session))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun clearVotesWithoutRoomIdCookieReturnsBadRequest() {
+        fun clearVotesWithoutRoomIdSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     post("/${room.id}/clearVotes")
-                        .cookie(*cookies.filterNot { it.name == COOKIE_ROOM }.toTypedArray()))
+                        .content(jacksonObjectMapper().writeValueAsString(session.copy(roomId = "")))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun clearVotesWithoutParticipantCookieReturnsBadRequest() {
+        fun clearVotesWithoutParticipantSessionReturnsBadRequest() {
             mockMvc
                 .perform(
                     post("/${room.id}/clearVotes")
-                        .cookie(*cookies.filterNot { it.name == COOKIE_PARTICIPANT }.toTypedArray()))
+                        .content(jacksonObjectMapper().writeValueAsString(session.copy(participantName = "")))
+                        .contentType("application/json"))
                 .andExpect(status().isBadRequest)
         }
 
         @Test
-        fun clearVotesWithoutCookiesReturnsBadRequest() {
+        fun clearVotesWithoutSessionReturnsBadRequest() {
             mockMvc
                 .perform(post("/${room.id}/clearVotes"))
                 .andExpect(status().isBadRequest)
         }
-    }
-
-    companion object {
-        private const val COOKIE_ROOM = "roomId"
-        private const val COOKIE_PARTICIPANT = "participant"
     }
 }

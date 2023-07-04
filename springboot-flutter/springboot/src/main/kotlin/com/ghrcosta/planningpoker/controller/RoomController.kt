@@ -2,6 +2,7 @@ package com.ghrcosta.planningpoker.controller
 
 import com.ghrcosta.planningpoker.dto.RoomDTO
 import com.ghrcosta.planningpoker.dto.RoomDTO.Companion.dto
+import com.ghrcosta.planningpoker.dto.SessionDTO
 import com.ghrcosta.planningpoker.exception.DuplicatedParticipantNameException
 import com.ghrcosta.planningpoker.exception.ParticipantNotFoundException
 import com.ghrcosta.planningpoker.exception.RoomNotFoundException
@@ -13,15 +14,13 @@ import io.swagger.v3.oas.annotations.media.Schema
 import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
 import kotlinx.coroutines.runBlocking
-import org.springframework.http.HttpHeaders
 import org.springframework.http.HttpStatus
-import org.springframework.http.ResponseCookie
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.CookieValue
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
@@ -45,23 +44,20 @@ class RoomController(private val roomService: RoomService) {
     }
 
     @PutMapping("/{roomId}/addParticipant")
+    @ResponseStatus(HttpStatus.CREATED)
     @Operation(
         summary = "Add new participant to a room",
         description = "Adds the given name as a participant in the given room and sets cookies used by other requests.")
     @ApiResponse(
-        responseCode = "204",
+        responseCode = "201",
         description = "Database updated",
         headers = [Header(name = "Set-Cookie", description = "Sets cookies for 'roomId' and 'participant'")])
     fun addParticipant(
         @PathVariable("roomId") roomId: String,
         @RequestParam("name") participantName: String,
-    ): ResponseEntity<Void> = runBlocking {
+    ): SessionDTO = runBlocking {
         roomService.addParticipant(roomId = roomId, participantName = participantName)
-
-        return@runBlocking ResponseEntity.noContent()
-            .header(HttpHeaders.SET_COOKIE, ResponseCookie.from(COOKIE_ROOM, roomId).build().toString())
-            .header(HttpHeaders.SET_COOKIE, ResponseCookie.from(COOKIE_PARTICIPANT, participantName).build().toString())
-            .build()
+        return@runBlocking SessionDTO(roomId = roomId, participantName = participantName)
     }
 
     @PutMapping("/{roomId}/vote")
@@ -75,13 +71,10 @@ class RoomController(private val roomService: RoomService) {
     fun setParticipantVote(
         @PathVariable("roomId") roomId: String,
         @RequestParam("value") vote: String,
-        @CookieValue(name = COOKIE_ROOM) cookieRoomId: String,
-        @CookieValue(name = COOKIE_PARTICIPANT) cookieParticipant: String,
+        @RequestBody session: SessionDTO,
     ) = runBlocking {
-        if (roomId != cookieRoomId) {
-            throw IllegalArgumentException("Session mismatch")
-        }
-        roomService.setParticipantVote(roomId = roomId, participantName = cookieParticipant, vote = vote)
+        validateSession(session, roomId)
+        roomService.setParticipantVote(roomId = roomId, participantName = session.participantName, vote = vote)
     }
 
     @PostMapping("/{roomId}/revealVotes")
@@ -95,13 +88,10 @@ class RoomController(private val roomService: RoomService) {
         description = "Database updated")
     fun revealVotes(
         @PathVariable("roomId") roomId: String,
-        @CookieValue(name = COOKIE_ROOM) cookieRoomId: String,
-        @CookieValue(name = COOKIE_PARTICIPANT) cookieParticipant: String,
+        @RequestBody session: SessionDTO,
     ) = runBlocking {
-        if (roomId != cookieRoomId) {
-            throw IllegalArgumentException("Session mismatch")
-        }
-        roomService.revealVotes(roomId = roomId, participantName = cookieParticipant)
+        validateSession(session, roomId)
+        roomService.revealVotes(roomId = roomId, participantName = session.participantName)
     }
 
     @PostMapping("/{roomId}/clearVotes")
@@ -116,37 +106,38 @@ class RoomController(private val roomService: RoomService) {
         description = "Database updated")
     fun clearVotes(
         @PathVariable("roomId") roomId: String,
-        @CookieValue(name = COOKIE_ROOM) cookieRoomId: String,
-        @CookieValue(name = COOKIE_PARTICIPANT) cookieParticipant: String,
+        @RequestBody session: SessionDTO,
     ) = runBlocking {
-        if (roomId != cookieRoomId) {
+        validateSession(session, roomId)
+        roomService.clearVotes(roomId = roomId, participantName = session.participantName)
+    }
+
+    private fun validateSession(session: SessionDTO, roomId: String) {
+        if (session.roomId.isBlank() || session.participantName.isBlank()) {
+            throw IllegalArgumentException("Invalid session")
+        }
+        if (roomId != session.roomId) {
             throw IllegalArgumentException("Session mismatch")
         }
-        roomService.clearVotes(roomId = roomId, participantName = cookieParticipant)
     }
 
     @ExceptionHandler(RoomNotFoundException::class)
-    fun handleRoomNotFoundException(e: RoomNotFoundException): ResponseEntity<String> {
+    private fun handleRoomNotFoundException(e: RoomNotFoundException): ResponseEntity<String> {
         return ResponseEntity(e.message, HttpStatus.NOT_FOUND)
     }
 
     @ExceptionHandler(DuplicatedParticipantNameException::class)
-    fun handleDuplicatedParticipantNameException(e: DuplicatedParticipantNameException): ResponseEntity<String> {
+    private fun handleDuplicatedParticipantNameException(e: DuplicatedParticipantNameException): ResponseEntity<String> {
         return ResponseEntity(e.message, HttpStatus.CONFLICT)
     }
 
     @ExceptionHandler(ParticipantNotFoundException::class)
-    fun handleParticipantNotFoundException(e: ParticipantNotFoundException): ResponseEntity<String> {
+    private fun handleParticipantNotFoundException(e: ParticipantNotFoundException): ResponseEntity<String> {
         return ResponseEntity(e.message, HttpStatus.NOT_FOUND)
     }
 
     @ExceptionHandler(IllegalArgumentException::class)
-    fun handleParticipantNotFoundException(e: IllegalArgumentException): ResponseEntity<String> {
+    private fun handleParticipantNotFoundException(e: IllegalArgumentException): ResponseEntity<String> {
         return ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
-    }
-
-    companion object {
-        private const val COOKIE_ROOM = "roomId"
-        private const val COOKIE_PARTICIPANT = "participant"
     }
 }
