@@ -8,13 +8,12 @@ import com.ghrcosta.planningpoker.exception.ParticipantNotFoundException
 import com.ghrcosta.planningpoker.exception.RoomNotFoundException
 import com.ghrcosta.planningpoker.service.RoomService
 import io.swagger.v3.oas.annotations.Operation
-import io.swagger.v3.oas.annotations.media.Content
-import io.swagger.v3.oas.annotations.media.Schema
-import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.tags.Tag
+import jakarta.validation.Valid
 import kotlinx.coroutines.runBlocking
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -33,10 +32,6 @@ class RoomController(private val roomService: RoomService) {
     @Operation(
         summary = "Create a new room",
         description = "Create a new room. Every new room is guaranteed to have a different ID.")
-    @ApiResponse(
-        responseCode = "201",
-        description = "New room created and stored in database",
-        content = [Content(schema = Schema(implementation = RoomDTO::class))])
     fun createRoom(): RoomDTO = runBlocking {
         val newRoom = roomService.createRoom()
         return@runBlocking newRoom.dto()
@@ -64,7 +59,7 @@ class RoomController(private val roomService: RoomService) {
     fun setParticipantVote(
         @PathVariable("roomId") roomId: String,
         @RequestParam("value") vote: String,
-        @RequestBody session: SessionDTO,
+        @RequestBody @Valid session: SessionDTO,
     ) = runBlocking {
         validateSession(session, roomId)
         roomService.setParticipantVote(roomId = roomId, participantName = session.participantName, vote = vote)
@@ -78,7 +73,7 @@ class RoomController(private val roomService: RoomService) {
                       "Both room and participant are retrieved from session.")
     fun revealVotes(
         @PathVariable("roomId") roomId: String,
-        @RequestBody session: SessionDTO,
+        @RequestBody @Valid session: SessionDTO,
     ) = runBlocking {
         validateSession(session, roomId)
         roomService.revealVotes(roomId = roomId, participantName = session.participantName)
@@ -93,16 +88,13 @@ class RoomController(private val roomService: RoomService) {
                       "Both room and participant are retrieved from session.")
     fun clearVotes(
         @PathVariable("roomId") roomId: String,
-        @RequestBody session: SessionDTO,
+        @RequestBody @Valid session: SessionDTO,
     ) = runBlocking {
         validateSession(session, roomId)
         roomService.clearVotes(roomId = roomId, participantName = session.participantName)
     }
 
     private fun validateSession(session: SessionDTO, roomId: String) {
-        if (session.roomId.isBlank() || session.participantName.isBlank()) {
-            throw IllegalArgumentException("Invalid session")
-        }
         if (roomId != session.roomId) {
             throw IllegalArgumentException("Session mismatch")
         }
@@ -125,6 +117,11 @@ class RoomController(private val roomService: RoomService) {
 
     @ExceptionHandler(IllegalArgumentException::class)
     private fun handleParticipantNotFoundException(e: IllegalArgumentException): ResponseEntity<String> {
+        return ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException::class)
+    private fun handleMethodArgumentNotValidException(e: MethodArgumentNotValidException): ResponseEntity<String> {
         return ResponseEntity(e.message, HttpStatus.BAD_REQUEST)
     }
 }

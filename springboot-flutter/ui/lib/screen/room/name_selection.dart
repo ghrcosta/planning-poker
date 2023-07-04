@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+// Based on https://codewithandrea.com/articles/flutter-text-field-form-validation/
+
 class RoomNameSelectionWidget extends StatefulWidget {
   final ValueChanged<String> onSubmit;
 

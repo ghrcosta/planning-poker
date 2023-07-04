@@ -16,7 +16,7 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
         child: FilledButton(
-          onPressed: _createRoomAndNavigateToIt,
+          onPressed: (() => { _createRoomAndNavigateToIt(context) }),
           child: Text(
             'Create room',
             style: Theme.of(context).textTheme.headlineSmall,
@@ -26,9 +26,13 @@ class HomeScreen extends StatelessWidget {
     );
   }
 
-  void _createRoomAndNavigateToIt() async {
+  Future<void> _createRoomAndNavigateToIt(BuildContext context) async {
     createRoom()
       .then((room) => navigateToRoom(room.id))
-      .catchError((e) => print(e));
+      .catchError((e) =>
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()))
+        )
+      );
   }
 }

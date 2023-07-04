@@ -74,7 +74,11 @@ class _RoomScreenState extends State<RoomScreen> {
   Future<void> _addParticipant(String name) async {
     addParticipant(widget.roomId, name)
       .then((session) => _setSession(session))
-      .catchError((e) => print(e));
+      .catchError((e) =>
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()))
+        )
+      );
   }
 
   Future<void> _setSession(Session session) async {
