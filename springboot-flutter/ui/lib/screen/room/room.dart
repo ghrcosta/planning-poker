@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:ui/entity/participant.dart';
+import 'package:ui/entity/room.dart';
 
 import 'package:ui/entity/session.dart';
 import 'package:ui/screen/room/name_selection.dart';
+import 'package:ui/screen/room/voting_area.dart';
 import 'package:ui/network.dart';
 
 class RoomScreen extends StatefulWidget {
@@ -45,18 +48,27 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Widget _buildRoom() {
-    return Center(
-      child: Column(
-        children: [
-          FilledButton(
-            onPressed: (() => {}),
-            child: Text(
-              'Room',
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-          ),
+    return RoomVotingAreaWidget(
+      onClickVote: ((text) => {}),
+      onClickReveal: ((text) => {}),
+      onClickClear: ((text) => {}),
+      room: Room(
+        id: _session.roomId,
+        participants: [
+          const Participant(name: "Caio", vote: "2"),
+          const Participant(name: "George", vote: "2"),
+          const Participant(name: "Malco", vote: "2"),
+          const Participant(name: "Marco", vote: "3"),
+          const Participant(name: "Leonardo", vote: "1"),
+          const Participant(name: "Rafael", vote: "1"),
+          const Participant(name: "Rebeca", vote: "3"),
+          const Participant(name: "Salomão", vote: "13"),
+          const Participant(name: "Thalis", vote: "?"),
+          const Participant(name: "invalid", vote: null),
         ],
+        votesRevealed: true
       ),
+      voteSelected: "2",
     );
   }
 

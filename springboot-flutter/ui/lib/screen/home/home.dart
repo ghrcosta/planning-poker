@@ -15,7 +15,7 @@ class HomeScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
-        child: FilledButton(
+        child: ElevatedButton(
           onPressed: (() => { _createRoomAndNavigateToIt(context) }),
           child: Text(
             'Create room',

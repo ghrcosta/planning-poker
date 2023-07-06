@@ -38,7 +38,7 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
               child: TextField(
                 controller: _textController,
                 decoration: InputDecoration(
-                  labelText: 'Name',
+                  labelText: 'Your name',
                   border: const OutlineInputBorder(),
                   errorText: _submitted ? _errorText : null,
                 ),
