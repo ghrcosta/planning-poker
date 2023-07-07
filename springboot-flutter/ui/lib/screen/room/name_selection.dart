@@ -4,10 +4,10 @@ import 'package:ui/screen/base.dart';
 // Based on https://codewithandrea.com/articles/flutter-text-field-form-validation/
 
 class RoomNameSelectionWidget extends StatefulWidget {
-  final ValueChanged<String> onSubmit;
+  final Function(String) submitName;
 
   const RoomNameSelectionWidget({
-    required this.onSubmit,
+    required this.submitName,
     super.key
   });
 
@@ -18,6 +18,7 @@ class RoomNameSelectionWidget extends StatefulWidget {
 class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
   final _textController = TextEditingController();
   bool _submitted = false;
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -27,36 +28,48 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
     super.dispose();
   }
 
+  Future<void> onSubmit(String name) async {
+    setState(() { _isLoading = true; });
+    await widget.submitName(name);
+    setState(() { _isLoading = false; });
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
       valueListenable: _textController,
       builder: (context, TextEditingValue value, __) {
-        return Center(
-          child: Column(
-            children: [
-              const SizedBox(height: 100),
-              SizedBox(
-                width: 220,
-                child: TextField(
-                  controller: _textController,
-                  decoration: InputDecoration(
-                    border: baseInputBorder,
-                    enabledBorder: baseInputBorder.copyWith(borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.onSurface,
-                    )),
-                    focusedBorder: baseInputBorder.copyWith(borderSide: BorderSide(
-                      color: Theme.of(context).colorScheme.surfaceTint,
-                    )),
-                    labelText: 'Your name',
-                    errorText: _submitted ? _errorText : null,
+        return Stack(
+          children: [
+            Center(
+              child: Column(
+                children: [
+                  const SizedBox(height: 100),
+                  SizedBox(
+                    width: 220,
+                    child: TextField(
+                      controller: _textController,
+                      decoration: InputDecoration(
+                        border: baseInputBorder,
+                        enabledBorder: baseInputBorder.copyWith(borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.onSurface,
+                        )),
+                        focusedBorder: baseInputBorder.copyWith(borderSide: BorderSide(
+                          color: Theme.of(context).colorScheme.surfaceTint,
+                        )),
+                        labelText: 'Your name',
+                        errorText: _submitted ? _errorText : null,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(height: 10),
+                  baseButton(context, 'Submit', _errorText == null ? _submit : null),
+                ],
               ),
-              const SizedBox(height: 10),
-              baseButton(context, 'Submit', _errorText == null ? _submit : null),
-            ],
-          ),
+            ),
+            if (_isLoading)
+              const LinearProgressIndicator(semanticsLabel: 'Loading indicator'),
+          ],
         );
       },
     );
@@ -76,7 +89,7 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
   void _submit() {
     setState(() => _submitted = true);
     if (_errorText == null) {
-      widget.onSubmit(_textController.value.text.trim());
+      onSubmit(_textController.value.text.trim());
     }
   }
 }

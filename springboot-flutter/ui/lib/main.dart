@@ -39,6 +39,8 @@ class _PlanningPokerAppState extends State<PlanningPokerApp> {
   }
 }
 
+// For text sizes: https://api.flutter.dev/flutter/material/TextTheme-class.html
+
 // Colors created using https://m3.material.io/theme-builder#/custom
 // Base colors:
 // Primary: #526991

@@ -49,7 +49,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Widget _buildNameSelection() {
-    return RoomNameSelectionWidget(onSubmit: _addParticipant);
+    return RoomNameSelectionWidget(submitName: _addParticipant);
   }
 
   Widget _startListeningForRoomUpdatesAndBuildVotingArea() {
@@ -65,9 +65,7 @@ class _RoomScreenState extends State<RoomScreen> {
           return const Text('Something went wrong');
         }
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const LinearProgressIndicator(
-            semanticsLabel: 'Linear progress indicator',
-          );
+          return const LinearProgressIndicator(semanticsLabel: 'Loading indicator');
         }
         if (snapshot.hasError) {
           return Text("Connection to Firestore database failed: ${snapshot.error}");
@@ -95,9 +93,9 @@ class _RoomScreenState extends State<RoomScreen> {
       orElse: () => const Participant(name: '', vote: '')
     );
     return RoomVotingAreaWidget(
-      onSubmitVote: _submitVote,
-      onRevealVotes: _revealVotes,
-      onClearVotes: _clearVotes,
+      submitVote: _submitVote,
+      revealVotes: _revealVotes,
+      clearVotes: _clearVotes,
       room: room,
       participant: participant,
     );
@@ -115,7 +113,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _addParticipant(String name) async {
-    addParticipant(widget.roomId, name)
+    await addParticipant(widget.roomId, name)
       .then((session) => _setSession(session))
       .catchError((e) =>
         ScaffoldMessenger.of(context).showSnackBar(
@@ -132,7 +130,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _submitVote(String vote) async {
-    submitVote(vote)
+    await submitVote(vote)
       .catchError((e) =>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()))
@@ -141,7 +139,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _revealVotes() async {
-    revealVotes()
+    await revealVotes()
       .catchError((e) =>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()))
@@ -150,7 +148,7 @@ class _RoomScreenState extends State<RoomScreen> {
   }
 
   Future<void> _clearVotes() async {
-    clearVotes()
+    await clearVotes()
       .catchError((e) =>
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString()))
