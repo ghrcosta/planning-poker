@@ -1,12 +1,12 @@
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
+import 'package:ui/debug.dart';
 import 'package:ui/entity/room.dart';
 import 'package:ui/entity/session.dart';
 
 
-const _baseUrl = kDebugMode ? "http://localhost:8080" : "";
+final _baseUrl = getBaseUrl();
 
 Future<Room> createRoom() async {
   final response = await http.post(
@@ -34,10 +34,17 @@ Future<Session> addParticipant(String roomId, String name) async {
   }
 }
 
-Future<void> setVote(String vote) async {
+Future<void> submitVote(String vote) async {
   final session = await Session.getCurrentSessionIfItExists();
   if (session == null) {
     return Future.error("Session not found");
+  }
+
+  final String sessionEncodedJson;
+  try {
+    sessionEncodedJson = jsonEncode(session.toJson());
+  } catch(e) {
+    return Future.error('Failed to submit vote: $e');
   }
 
   final response = await http.put(
@@ -45,15 +52,15 @@ Future<void> setVote(String vote) async {
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(session)
+    body: sessionEncodedJson
   );
 
   if (response.statusCode == 204) {
     return;
   } else if (response.body.isNotEmpty) {
-    return Future.error('Failed to add participant: ${response.body} (${response.statusCode})');
+    return Future.error('Failed to submit vote: ${response.body} (${response.statusCode})');
   } else {
-    return Future.error('Failed to add participant: ${response.statusCode}');
+    return Future.error('Failed to submit vote: ${response.statusCode}');
   }
 }
 
@@ -63,20 +70,27 @@ Future<void> revealVotes() async {
     return Future.error("Session not found");
   }
 
+  final String sessionEncodedJson;
+  try {
+    sessionEncodedJson = jsonEncode(session.toJson());
+  } catch(e) {
+    return Future.error('Failed to submit vote: $e');
+  }
+
   final response = await http.post(
     Uri.parse('$_baseUrl/${session.roomId}/revealVotes'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(session)
+    body: sessionEncodedJson
   );
 
   if (response.statusCode == 204) {
     return;
   } else if (response.body.isNotEmpty) {
-    return Future.error('Failed to add participant: ${response.body} (${response.statusCode})');
+    return Future.error('Failed to reveal votes: ${response.body} (${response.statusCode})');
   } else {
-    return Future.error('Failed to add participant: ${response.statusCode}');
+    return Future.error('Failed to reveal votes: ${response.statusCode}');
   }
 }
 
@@ -86,19 +100,26 @@ Future<void> clearVotes() async {
     return Future.error("Session not found");
   }
 
+  final String sessionEncodedJson;
+  try {
+    sessionEncodedJson = jsonEncode(session.toJson());
+  } catch(e) {
+    return Future.error('Failed to submit vote: $e');
+  }
+
   final response = await http.post(
     Uri.parse('$_baseUrl/${session.roomId}/clearVotes'),
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
     },
-    body: jsonEncode(session)
+    body: sessionEncodedJson
   );
 
   if (response.statusCode == 204) {
     return;
   } else if (response.body.isNotEmpty) {
-    return Future.error('Failed to add participant: ${response.body} (${response.statusCode})');
+    return Future.error('Failed to clear votes: ${response.body} (${response.statusCode})');
   } else {
-    return Future.error('Failed to add participant: ${response.statusCode}');
+    return Future.error('Failed to clear votes: ${response.statusCode}');
   }
 }

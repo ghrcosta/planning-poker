@@ -18,4 +18,9 @@ class Room {
       votesRevealed: json['votesRevealed']
     );
   }
+
+  factory Room.fromFirestore(String id, Map<String, dynamic> data) {
+    data.putIfAbsent('id', () => id);
+    return Room.fromJson(data);
+  }
 }

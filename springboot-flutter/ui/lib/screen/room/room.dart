@@ -1,11 +1,13 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+
 import 'package:ui/entity/participant.dart';
 import 'package:ui/entity/room.dart';
-
 import 'package:ui/entity/session.dart';
 import 'package:ui/screen/room/name_selection.dart';
 import 'package:ui/screen/room/voting_area.dart';
 import 'package:ui/network.dart';
+import 'package:ui/screen/theme_toggle.dart';
 
 class RoomScreen extends StatefulWidget {
   final String roomId;
@@ -21,25 +23,28 @@ class RoomScreen extends StatefulWidget {
 
 class _RoomScreenState extends State<RoomScreen> {
   Session _session = const Session(roomId: '', participantName: '');
+  late Stream<DocumentSnapshot> _roomStream;  // Cannot be final because it's set again on theme toggle
 
   @override
   void initState() {
-    super.initState();
     _loadCurrentSessionIfItExists();
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.background,
+      floatingActionButton: const ThemeToggleFab(),
       body: _buildRoomBasedOnState(),
     );
   }
 
   Widget _buildRoomBasedOnState() {
-    if (_session.roomId == '') {
+    if (_session.roomId == '' || _session.roomId != widget.roomId) {
       return _buildNameSelection();
     } else {
-      return _buildRoom();
+      return _startListeningForRoomUpdatesAndBuildVotingArea();
     }
   }
 
@@ -47,28 +52,54 @@ class _RoomScreenState extends State<RoomScreen> {
     return RoomNameSelectionWidget(onSubmit: _addParticipant);
   }
 
-  Widget _buildRoom() {
+  Widget _startListeningForRoomUpdatesAndBuildVotingArea() {
+    _roomStream = FirebaseFirestore.instance.collection('room').doc(widget.roomId).snapshots();
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: _roomStream,
+      builder: (BuildContext context, AsyncSnapshot<DocumentSnapshot> snapshot) {
+        if (snapshot.hasError) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Something went wrong'))
+          );
+          return const Text('Something went wrong');
+        }
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const LinearProgressIndicator(
+            semanticsLabel: 'Linear progress indicator',
+          );
+        }
+        if (snapshot.hasError) {
+          return Text("Connection to Firestore database failed: ${snapshot.error}");
+        }
+        if (snapshot.data!.data() == null) {
+          return const Text("Failed to load data: Firestore returned null");
+        }
+
+        final Room room;
+        try {
+          final firestoreId = snapshot.data!.id;  // Same as "widget.roomId"
+          final firestoreData = snapshot.data!.data()! as Map<String, dynamic>;
+          room = Room.fromFirestore(firestoreId, firestoreData);
+        } catch(e) {
+          return Text("Failed to load data -- Invalid room object:\n$e");
+        }
+        return _buildVotingArea(room);
+      }
+    );
+  }
+
+  Widget _buildVotingArea(Room room) {
+    final participant = room.participants
+      .firstWhere((i) => i.name == _session.participantName,
+      orElse: () => const Participant(name: '', vote: '')
+    );
     return RoomVotingAreaWidget(
-      onClickVote: ((text) => {}),
-      onClickReveal: ((text) => {}),
-      onClickClear: ((text) => {}),
-      room: Room(
-        id: _session.roomId,
-        participants: [
-          const Participant(name: "Caio", vote: "2"),
-          const Participant(name: "George", vote: "2"),
-          const Participant(name: "Malco", vote: "2"),
-          const Participant(name: "Marco", vote: "3"),
-          const Participant(name: "Leonardo", vote: "1"),
-          const Participant(name: "Rafael", vote: "1"),
-          const Participant(name: "Rebeca", vote: "3"),
-          const Participant(name: "Salomão", vote: "13"),
-          const Participant(name: "Thalis", vote: "?"),
-          const Participant(name: "invalid", vote: null),
-        ],
-        votesRevealed: true
-      ),
-      voteSelected: "2",
+      onSubmitVote: _submitVote,
+      onRevealVotes: _revealVotes,
+      onClearVotes: _clearVotes,
+      room: room,
+      participant: participant,
     );
   }
 
@@ -98,5 +129,32 @@ class _RoomScreenState extends State<RoomScreen> {
     setState(() {
       _session = session;
     });
+  }
+
+  Future<void> _submitVote(String vote) async {
+    submitVote(vote)
+      .catchError((e) =>
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()))
+        )
+      );
+  }
+
+  Future<void> _revealVotes() async {
+    revealVotes()
+      .catchError((e) =>
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()))
+        )
+      );
+  }
+
+  Future<void> _clearVotes() async {
+    clearVotes()
+      .catchError((e) =>
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(e.toString()))
+        )
+      );
   }
 }

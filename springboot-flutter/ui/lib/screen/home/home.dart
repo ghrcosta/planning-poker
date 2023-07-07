@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
 import 'package:ui/network.dart';
+import 'package:ui/screen/base.dart';
+import 'package:ui/screen/theme_toggle.dart';
 
 class HomeScreen extends StatelessWidget {
   final Function(String?) navigateToRoom;
@@ -13,15 +15,15 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: const ThemeToggleFab(),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: Center(
-        child: ElevatedButton(
-          onPressed: (() => { _createRoomAndNavigateToIt(context) }),
-          child: Text(
-            'Create room',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-        ),
+        child: Column(
+          children: [
+            const SizedBox(height: 100),
+            baseButton(context, 'Create room', () => { _createRoomAndNavigateToIt(context) }, width: 200)
+          ],
+        )
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ui/screen/base.dart';
 
 // Based on https://codewithandrea.com/articles/flutter-text-field-form-validation/
 
@@ -31,30 +32,31 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
     return ValueListenableBuilder(
       valueListenable: _textController,
       builder: (context, TextEditingValue value, __) {
-        return Column(
-          children: [
-            SizedBox(
-              height: 80,
-              child: TextField(
-                controller: _textController,
-                decoration: InputDecoration(
-                  labelText: 'Your name',
-                  border: const OutlineInputBorder(),
-                  errorText: _submitted ? _errorText : null,
+        return Center(
+          child: Column(
+            children: [
+              const SizedBox(height: 100),
+              SizedBox(
+                width: 220,
+                child: TextField(
+                  controller: _textController,
+                  decoration: InputDecoration(
+                    border: baseInputBorder,
+                    enabledBorder: baseInputBorder.copyWith(borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.onSurface,
+                    )),
+                    focusedBorder: baseInputBorder.copyWith(borderSide: BorderSide(
+                      color: Theme.of(context).colorScheme.surfaceTint,
+                    )),
+                    labelText: 'Your name',
+                    errorText: _submitted ? _errorText : null,
+                  ),
                 ),
               ),
-            ),
-            SizedBox(
-              height: 40,
-              child: ElevatedButton(
-                onPressed: _textController.value.text.trim().isNotEmpty ? _submit : null,
-                child: Text(
-                  'Submit',
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-              ),
-            )
-          ],
+              const SizedBox(height: 10),
+              baseButton(context, 'Submit', _errorText == null ? _submit : null),
+            ],
+          ),
         );
       },
     );

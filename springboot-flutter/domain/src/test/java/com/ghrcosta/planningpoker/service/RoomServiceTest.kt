@@ -82,6 +82,19 @@ class RoomServiceTest {
     }
 
     @Test
+    fun canChangeVoteAfterVotesAreRevealed() = runTest {
+        val name = "test"
+        val room = roomService.createRoom()
+        roomService.addParticipant(room.id, name)
+        roomService.setParticipantVote(roomId = room.id, participantName = name, vote = "2")
+        roomService.revealVotes(roomId = room.id, participantName = name)
+
+        val vote = "3"
+        roomService.setParticipantVote(roomId = room.id, participantName = name, vote = vote)
+        assertTrue { storage.findRoomById(room.id)?.participants?.find { it.name == name }?.vote == vote }
+    }
+
+    @Test
     fun votesAreClearedWhenRequestedByOneOfTheParticipants() = runTest {
         val nameA = "a"
         val room = roomService.createRoom()

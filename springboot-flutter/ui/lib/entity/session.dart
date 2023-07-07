@@ -13,6 +13,8 @@ class Session {
     );
   }
 
+  Map<String, dynamic> toJson() => {'roomId': roomId, 'participantName': participantName};
+
   static const _prefsIdRoom = 'roomId';
   static const _prefsIdParticipant = 'participantName';
 
