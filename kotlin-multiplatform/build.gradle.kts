@@ -76,7 +76,6 @@ kotlin {
         val ktorVersion = "1.6.7"
         val reactVersion = "17.0.2-pre.299-kotlin-1.6.10"
 
-        @Suppress("UNUSED_VARIABLE")
         val commonMain by getting {
             dependencies {
                 implementation("io.ktor:ktor-client-core:$ktorVersion")
@@ -84,14 +83,12 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test-common"))
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        @Suppress("UNUSED_VARIABLE")
         val jvmMain by getting {
             dependencies {
                 // Ktor - Kotlin Microservice framework
@@ -114,10 +111,8 @@ kotlin {
             }
         }
 
-        @Suppress("UNUSED_VARIABLE")
         val jvmTest by getting
 
-        @Suppress("UNUSED_VARIABLE")
         val jsMain by getting {
             dependencies {
                 // Ktor - Kotlin Microservice framework
@@ -204,7 +199,7 @@ tasks {
 }
 
 
-val versionAppEngine = appVersion.replace(".","-")  // AppEngine only allows letters, numbers and hyphen
+val versionAppEngine = "kotlin-multiplatform-${appVersion.replace(".","-")}"  // AppEngine only allows letters, numbers and hyphen
 appengine {
     stage {
         setAppEngineDirectory("./")
