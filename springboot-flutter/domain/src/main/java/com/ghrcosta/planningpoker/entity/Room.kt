@@ -3,7 +3,6 @@ package com.ghrcosta.planningpoker.entity
 import com.ghrcosta.planningpoker.exception.DuplicatedParticipantNameException
 import kotlin.random.Random
 
-@Suppress("unused")
 class Room(
     id: String? = null,
     participants: List<Participant>? = null,
@@ -11,9 +10,11 @@ class Room(
 ) {
     val id = id ?: createRandomString()
 
+    @Suppress("unused")  // Not used internally, but accessed by clients
     val participants: List<Participant>
         get() = _participants.toList()
 
+    @Suppress("unused")  // Not used internally, but accessed by clients
     val votesRevealed: Boolean
         get() = _votesRevealed
 

@@ -1,7 +1,7 @@
 rootProject.name = "planning-poker"
 include("domain", "springboot")
 
-// See: https://github.com/GoogleCloudPlatform/app-gradle-plugin#using-plugins-block
+// See springboot/build.gradle
 pluginManagement {
     repositories {
         gradlePluginPortal()

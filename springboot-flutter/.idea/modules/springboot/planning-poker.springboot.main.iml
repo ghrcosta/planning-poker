@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module version="4">
+  <component name="AdditionalModuleElements">
+    <content url="file://$MODULE_DIR$/../../../springboot/src/main" dumb="true">
+      <excludeFolder url="file://$MODULE_DIR$/../../../springboot/src/main/resources/static" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../springboot/src/main/resources/static/assets" />
+      <excludeFolder url="file://$MODULE_DIR$/../../../springboot/src/main/resources/static/canvaskit" />
+    </content>
+  </component>
+</module>

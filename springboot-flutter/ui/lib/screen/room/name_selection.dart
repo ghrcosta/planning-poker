@@ -17,6 +17,7 @@ class RoomNameSelectionWidget extends StatefulWidget {
 
 class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
   final _textController = TextEditingController();
+  final _textFocusNode = FocusNode();
   bool _submitted = false;
   bool _isLoading = false;
 
@@ -49,6 +50,12 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
                     width: 220,
                     child: TextField(
                       controller: _textController,
+                      focusNode: _textFocusNode,
+                      onSubmitted: (value) {
+                        _submit();
+                        _textController.clear();  // Remove all text from the text field
+                        _textFocusNode.requestFocus();  // Keep focus when user clicks Enter
+                      },
                       decoration: InputDecoration(
                         border: baseInputBorder,
                         enabledBorder: baseInputBorder.copyWith(borderSide: BorderSide(

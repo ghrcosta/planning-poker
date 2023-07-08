@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="springboot-flutter [bootJar]" type="GradleRunConfiguration" factoryName="Gradle">
+  <configuration default="false" name="deploy" type="GradleRunConfiguration" factoryName="Gradle">
     <ExternalSystemSettings>
       <option name="executionName" />
       <option name="externalProjectPath" value="$PROJECT_DIR$" />
@@ -10,7 +10,7 @@
       </option>
       <option name="taskNames">
         <list>
-          <option value="bootJar" />
+          <option value="appengineDeploy" />
         </list>
       </option>
       <option name="vmOptions" />

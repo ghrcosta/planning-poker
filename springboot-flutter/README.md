@@ -2,7 +2,7 @@
 
 It was made to run in GAE Standard environment (free tier), which doesn't
 support websocket. Clients receive updates from Firestore directly using
-the Firebase javascript SDK.
+the Firebase SDK for Flutter.
 
 
 
@@ -11,7 +11,7 @@ the Firebase javascript SDK.
 1. Install [Java 17](https://adoptium.net/?variant=openjdk17)
 2. Install [Git Bash](https://git-scm.com/download)
     1. During installation, select option `Checkout as-is, commit
-       Unix-style`
+       Unix-style`.
         * Deploy will fail if the files have line separators with
           Windows style (CRLF)!
 3. Install [Google Cloud SDK](https://cloud.google.com/sdk/docs/install)
@@ -19,10 +19,16 @@ the Firebase javascript SDK.
         ```
         $ gcloud components install app-engine-java
         ```
-4. Install [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
-    1. Open the project, go to Settings and make sure Kotlin code style is set
-       to be the one from the project
-5. Install NPM
+    2. Create an environment variable called "GOOGLE_CLOUD_SDK_HOME" with the full
+       path to the Cloud SDK /bin directory.
+4. Install [Flutter SDK](https://docs.flutter.dev/get-started/install)
+    1. Follow the instructions to install the SDK (don't forget the "additional
+       requirements" section).
+    2. If it shows a warning that the Android toolchain is missing, ignore it.
+5. Install an IDE such as [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
+   or [VSCode](https://code.visualstudio.com/)
+    1. Configure whatever is needed for Kotlin/Java and Flutter support.
+6. Install NPM
     * For Windows:
         1. Install https://github.com/coreybutler/nvm-windows
         2. Open Windows command prompt (or Git Bash) \***as admin**\*
@@ -32,13 +38,13 @@ the Firebase javascript SDK.
             $ nvm use latest
             ```
            *Note*: at the time this readme was written, latest=20.3.1
-6. Install Firebase CLI + Emulators
+7. Install Firebase CLI + Emulators
     ```
     $ npm install -g firebase-tools
     ```
     * Using CMD (Win+R > cmd) -- doesn't work properly on Git Bash (at least, not on 2.38.1):
         ```
-        $ cd <project_directory>
+        $ cd <project_directory>/springboot
         $ firebase login
             (will open browser to complete login)
             - If you were already logged in, execute:
@@ -50,7 +56,8 @@ the Firebase javascript SDK.
               are already defined, see firebase.json
             - Select "Download emulators"
         ```
-7. Optional: Set up application-default credentials
+8. Install the Flutter [Firebase plugin](https://firebase.google.com/docs/flutter/setup?hl=pt-br&platform=web)
+9. Optional: Set up application-default credentials
     * This is only required to execute the application locally.
       See https://firebase.google.com/docs/admin/setup#testing_with_gcloud_end_user_credentials
     1. In your GCP project, go to APIs & Services > OAuth consent screen
@@ -62,7 +69,7 @@ the Firebase javascript SDK.
           it in the project root directory
     3. Execute:
         ```
-        $ gcloud auth application-default login --client-id-file=client_secret_<some numbers>.json
+        $ gcloud auth application-default login --client-id-file=client_secret_<a-random-id>.json
             (will open browser to complete login; check all boxes)
         ```
 
@@ -77,35 +84,32 @@ instance on GCP.
 
 1. Start emulators
     * ```
-      $ cd <project_directory>
+      $ cd <project_directory>/springboot
       $ firebase emulators:start
       ```
     * Access the emulators UI via `http://localhost:8090`
-
-2. Run server
-    1. In `src/jsMain/config/Firebase.kt`, setup Firebase parameters by
-       replacing `YOUR_GCP_DATA_HERE` with real values from your Firebase
-       project (see Firebase console > Project settings). This is required even
-       for local execution.
-    2. Execute `./gradlew run` passing the following environment variables:
-        ```
-        GOOGLE_CLOUD_PROJECT=<YOUR_GCP_PROJECT>;FIRESTORE_EMULATOR_HOST=localhost:8081
-        ```
-       Both variables are required in order for the server to communicate with
-       the Firestore emulator.
-
-After the server is running you can access the frontend via
-`http://localhost:8080` (as defined in `jvmMain/resources/application.conf`).
+2. Run backend server
+    1. In `<project_directory>/springboot/src/main/resources/`, change the 
+       properties values for "local" and "prod" as necessary -- you will need to
+       change at least the GCP project-id one.
+    2. Execute `./gradlew run` or, if using IntelliJ IDEA, execute the saved
+       configuration "PlanningPokerApplicationKt". The server will be waiting
+       for requests at address `http://localhost:8080`. The Swagger API
+       documentation will be available at `http://localhost:8080/swagger-ui`.
+3. Run frontend server
+    1. Execute `flutter run` or, if using an IDE, make sure the "target device"
+       is configured to be one of your browsers, then use the corresponding button
+       to execute the debug server. The browser will open automatically. Despite
+       running in a different localhost port, the backend will accept frontend
+       requests due to `allow-cross-origin=true` in `application-local.properties`.
 
 
 
 ## Deploy
 
 1. Make sure AppEngine and Cloud Build API are both enabled on you GCP project.
-2. Search for `YOUR_GCP_PROJECT` and `YOUR_GCP_DATA_HERE` replace with your own
-   GCP project name and data (see Firebase console > Project settings).
-3. If the backend is running locally, stop it, otherwise GAE deploy will fail
-4. Make sure Google Cloud SDK is set up correctly:
+2. If the backend is running locally, stop it, otherwise GAE deploy will fail
+3. Make sure Google Cloud SDK is set up correctly:
     * If you have other projects (or just installed Google Cloud SDK):
         ```
         $ gcloud config set project <YOUR_GCP_PROJECT>
@@ -119,21 +123,21 @@ After the server is running you can access the frontend via
         ```
         $ gcloud auth login
         ```
-5. Deploy the backend
+4. Deploy the backend
    ```
    ./gradlew clean appengineDeploy
    ```
-6. Deploy Cron job
+5. Deploy Cron job
    ```
    $ cd <project_directory>
    $ gcloud app deploy cron.yaml
    ```
-7. Deploy Firestore security rules
+6. Deploy Firestore security rules
    ```
    $ cd <project_directory>
    $ firebase deploy --only firestore:rules
    ```
-8. (OPTIONAL but RECOMMENDED) Clean up artifacts from AppEngine deploy
+7. (OPTIONAL but RECOMMENDED) Clean up artifacts from AppEngine deploy
 
    This is not required, but will help the GCP project stay in the free tier.
    See [link](https://stackoverflow.com/q/42947918),
@@ -150,7 +154,7 @@ After the server is running you can access the frontend via
 Maybe someday...
 
 * Frontend
-    * TODO
+    * Tests
 * Backend
     * GraalVM?
     * Improve logging

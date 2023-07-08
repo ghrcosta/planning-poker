@@ -7,7 +7,7 @@ import com.ghrcosta.planningpoker.exception.ParticipantNotFoundException
 import com.ghrcosta.planningpoker.exception.RoomNotFoundException
 import org.slf4j.LoggerFactory
 
-@Suppress("unused")
+@Suppress("unused")  // Not used internally, but accessed by clients
 class RoomService(
     private val storage: StorageHandler
 ) {

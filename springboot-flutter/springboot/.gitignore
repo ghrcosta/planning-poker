@@ -52,3 +52,6 @@ bin/
 
 # Firebase/Firestore temporary files
 *.log
+
+# The contents from the static directory are automatically generated during build (by compiling Flutter)
+src/main/resources/static
