@@ -53,9 +53,15 @@ dependencies {
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 
 	// Spring Cloud GCP starter + extras
+	// The "Apache Commons Logging" transitive dependency must be excluded, otherwise Spring Boot will complain it
+	// conflicts with its own "spring-jcl" package.
 	implementation("com.google.cloud:spring-cloud-gcp-starter")
-	implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
-	implementation("com.google.cloud:spring-cloud-gcp-starter-logging")
+	implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore") {
+		exclude("commons-logging","commons-logging")
+	}
+	implementation("com.google.cloud:spring-cloud-gcp-starter-logging") {
+		exclude("commons-logging","commons-logging")
+	}
 
 	// Spring Doc - Parses application endpoints and generates Swagger documentation (access /swagger-ui/index.html)
 	// https://springdoc.org/v2

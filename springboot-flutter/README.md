@@ -42,7 +42,7 @@ the Firebase SDK for Flutter.
     ```
     $ npm install -g firebase-tools
     ```
-    * Using CMD (Win+R > cmd) -- doesn't work properly on Git Bash (at least, not on 2.38.1):
+    * Using CMD (Win+R > cmd) -- doesn't work on Git Bash (at least, not on 2.38.1):
         ```
         $ cd <project_directory>/springboot
         $ firebase login
