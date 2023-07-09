@@ -25,6 +25,8 @@ the Firebase SDK for Flutter.
     1. Follow the instructions to install the SDK (don't forget the "additional
        requirements" section).
     2. If it shows a warning that the Android toolchain is missing, ignore it.
+    3. Make sure the path to the `flutter` binary is in your PATH environment variable
+       (for Windows, that's `<USER_DIR>/AppData/Local/flutter/bin`).
 5. Install an IDE such as [IntelliJ IDEA](https://www.jetbrains.com/idea/download/)
    or [VSCode](https://code.visualstudio.com/)
     1. Configure whatever is needed for Kotlin/Java and Flutter support.
@@ -89,19 +91,24 @@ instance on GCP.
       ```
     * Access the emulators UI via `http://localhost:8090`
 2. Run backend server
-    1. In `<project_directory>/springboot/src/main/resources/`, change the 
-       properties values for "local" and "prod" as necessary -- you will need to
-       change at least the GCP project-id one.
-    2. Execute `./gradlew run` or, if using IntelliJ IDEA, execute the saved
-       configuration "PlanningPokerApplicationKt". The server will be waiting
-       for requests at address `http://localhost:8080`. The Swagger API
-       documentation will be available at `http://localhost:8080/swagger-ui`.
+    1. Change the project ID in
+       `<project_directory>/springboot/src/main/resources/application-local.properties`.
+    2. In order to execute the server you need to be at `<project_directory>`. From there,
+       execute `./springboot/gradlew bootRun`. Or, if using IntelliJ IDEA, execute the
+       "Build Flutter & run locally" configuration. It'll compile the production UI and
+       start the server. If you don't need to compile the Flutter UI (because you will
+       run it separately or will use the one already compiled), execute
+       `./springboot/gradlew bootRun -x buildFlutter` (or, in Intellij IDEA, configuration
+       "Run locally (skip Flutter build)"). In both cases, the server will be waiting for
+       requests at address `http://localhost:8080`. The Swagger API documentation will be
+       available at `http://localhost:8080/swagger-ui/index.html`.
 3. Run frontend server
-    1. Execute `flutter run` or, if using an IDE, make sure the "target device"
-       is configured to be one of your browsers, then use the corresponding button
-       to execute the debug server. The browser will open automatically. Despite
-       running in a different localhost port, the backend will accept frontend
-       requests due to `allow-cross-origin=true` in `application-local.properties`.
+    1. From `<project_directory>/ui`, execute `flutter run`. Or, if using an IDE, make
+       sure the "target device" is configured to be one of your browsers, then use the
+       corresponding button to execute the debug server. The browser will open
+       automatically. Despite running in a different localhost port, the backend will
+       accept frontend requests due to `allow-cross-origin=true` in
+       `application-local.properties`.
 
 
 
@@ -127,12 +134,12 @@ instance on GCP.
    ```
    ./gradlew clean appengineDeploy
    ```
-5. Deploy Cron job
+5. Deploy Cron job (if changed)
    ```
    $ cd <project_directory>
    $ gcloud app deploy cron.yaml
    ```
-6. Deploy Firestore security rules
+6. Deploy Firestore security rules (if changed)
    ```
    $ cd <project_directory>
    $ firebase deploy --only firestore:rules

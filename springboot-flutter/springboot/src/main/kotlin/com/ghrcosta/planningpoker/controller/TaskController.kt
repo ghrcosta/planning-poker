@@ -13,17 +13,17 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/task")
-@Tag(name = "taskApi", description = "API used internally by GCP Cloud Tasks")
+@Tag(name = "taskApi", description = "API used internally by GCP App Engine Cron Jobs")
 class TaskController(private val roomService: RoomService) {
 
     /**
-     * Endpoint called by a GAE cloud task.
+     * Endpoint called by a GAE Cron Job.
      */
     @GetMapping("/cleanup")  // Must be GET because it's called automatically by GCP
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
         summary = "Clear database",
-        description = "Called periodically by a GCP cloud task to remove all rooms from the database.")
+        description = "Called periodically by a GCP App Engine Cron Job to remove all rooms from the database.")
     @ApiResponse(
         responseCode = "204",
         description = "Database cleared")

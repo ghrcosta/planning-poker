@@ -114,6 +114,7 @@ tasks.register<Exec>("cleanFlutterBuildDir") {
 tasks.register<Exec>("compileFlutter") {
 	dependsOn("cleanFlutterBuildDir")
 	// https://docs.flutter.dev/deployment/web#building-the-app-for-release
+	// Make sure the flutter binary path is in your PATH environment variable
 	workingDir = File("${rootDir}/ui/")
 	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
 		commandLine("cmd", "/c", "flutter", "build", "web")
