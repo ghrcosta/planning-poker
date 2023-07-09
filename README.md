@@ -1,5 +1,4 @@
 # planning-poker
 
-Planning poker tool made as a small, personal project to learn more about GCP,
-Kotlin and other technologies. Each directory is a separate project using
-different technologies.
+Different implementations of a planning poker tool, made as small, personal
+projects to learn more about GCP, Kotlin and other technologies.

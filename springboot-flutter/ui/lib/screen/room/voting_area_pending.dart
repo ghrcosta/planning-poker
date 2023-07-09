@@ -21,7 +21,7 @@ class _VotePendingWidgetState extends State<VotePendingWidget> {
   @override
   Widget build(BuildContext context) {
     widget.participantsPendingResults.retainWhere((i) => i.vote != null);
-    widget.participantsPendingResults.sort((a, b) => a.name.compareTo(b.name));
+    widget.participantsPendingResults.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
 
     final List<Widget> entryGroups = [];
     for (var i = 0; i < widget.participantsPendingResults.length; i++) {

@@ -146,17 +146,3 @@ instance on GCP.
        project
     2. Access `https://console.cloud.google.com/storage`, delete all files in
        "staging" and "artifacts" buckets
-
-
-
-## Improvement ideas
-
-Maybe someday...
-
-* Frontend
-    * Tests
-* Backend
-    * GraalVM?
-    * Improve logging
-        * Group log messages according to the request that generated them
-    * Execute all deployment steps with a single command

@@ -61,7 +61,7 @@ class _VoteResultsWidgetState extends State<VoteResultsWidget> {
   Widget _voteResultEntry(String vote, List<String> participantNames, String userName) {
     final List<Widget> participantRows = [];
 
-    participantNames.sort((a, b) => a.compareTo(b));
+    participantNames.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
     for (var i = 0; i < participantNames.length; i++) {
       final name = participantNames[i];
 

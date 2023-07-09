@@ -24,6 +24,12 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    _textFocusNode.requestFocus();
+  }
+
+  @override
   void dispose() {
     // To prevent issues, it's necessary to manually call dispose() on the controller
     // See https://stackoverflow.com/a/74878578

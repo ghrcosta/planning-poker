@@ -19,16 +19,16 @@ class Participant {
   static double convertToVoteSortingValue(String validVoteStr) {
     switch(validVoteStr) {
       case "null":
-        return -1;
+        return -2;
       case "½":
         return 0.5;
       case "?":
-        return 0;
+        return -1;
       default:
         try {
           return double.parse(validVoteStr);
         } on FormatException {
-          return -2;
+          return -3;
         }
     }
   }

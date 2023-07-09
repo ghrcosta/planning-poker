@@ -127,6 +127,7 @@ tasks.register<Delete>("deleteCurrentFlutterBuild") {
 	delete("${projectDir}/src/main/resources/static")
 }
 
+// Main task to put Flutter into the deployment process, all the other steps come as dependencies of this one
 tasks.register<Copy>("buildFlutter") {
 	dependsOn("deleteCurrentFlutterBuild")
 	from("${rootDir}/ui/build/web")
