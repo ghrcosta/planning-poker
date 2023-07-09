@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:ui/screen/base.dart';
+import 'package:ui/screen/footer.dart';
 
 // Based on https://codewithandrea.com/articles/flutter-text-field-form-validation/
 
@@ -51,9 +53,11 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
                     child: TextField(
                       controller: _textController,
                       focusNode: _textFocusNode,
+                      inputFormatters: [
+                        LengthLimitingTextInputFormatter(20),
+                      ],
                       onSubmitted: (value) {
                         _submit();
-                        _textController.clear();  // Remove all text from the text field
                         _textFocusNode.requestFocus();  // Keep focus when user clicks Enter
                       },
                       decoration: InputDecoration(
@@ -76,6 +80,7 @@ class _RoomNameSelectionWidgetState extends State<RoomNameSelectionWidget> {
             ),
             if (_isLoading)
               const LinearProgressIndicator(semanticsLabel: 'Loading indicator'),
+            const FooterWidget(),
           ],
         );
       },

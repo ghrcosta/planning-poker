@@ -7,7 +7,7 @@ import 'firebase_options.dart';
 import 'router.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsFlutterBinding.ensureInitialized();  // Required to initialize Firebase
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
@@ -30,8 +30,8 @@ class _PlanningPokerAppState extends State<PlanningPokerApp> {
   Widget build(BuildContext context) {
     return GetMaterialApp.router(
       title: 'Planning Poker',
-      theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme),
-      darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme),
+      theme: ThemeData(useMaterial3: true, colorScheme: lightColorScheme, textTheme: textTheme),
+      darkTheme: ThemeData(useMaterial3: true, colorScheme: darkColorScheme, textTheme: textTheme),
       themeMode: ThemeMode.system,
       routerDelegate: _routerDelegate,
       routeInformationParser: _routeInformationParser,
@@ -39,7 +39,12 @@ class _PlanningPokerAppState extends State<PlanningPokerApp> {
   }
 }
 
-// For text sizes: https://api.flutter.dev/flutter/material/TextTheme-class.html
+// Everything else uses the default: https://api.flutter.dev/flutter/material/TextTheme-class.html
+const textTheme = TextTheme(
+  bodyLarge: TextStyle(fontSize: 14),
+  bodyMedium: TextStyle(fontSize: 12),
+  bodySmall: TextStyle(fontSize: 10)
+);
 
 // Colors created using https://m3.material.io/theme-builder#/custom
 // Base colors:

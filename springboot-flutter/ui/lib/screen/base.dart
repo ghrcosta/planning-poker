@@ -9,7 +9,6 @@ Widget baseButton(BuildContext context, String text, Function()? onPressed, {dou
     height: 40,
     child: ElevatedButton(
       style: ButtonStyle(
-        shape: MaterialStateProperty.all(baseRectangleBorder),
         backgroundColor: MaterialStateProperty.resolveWith<Color>(
           (Set<MaterialState> states) {
             if (states.contains(MaterialState.disabled)) {

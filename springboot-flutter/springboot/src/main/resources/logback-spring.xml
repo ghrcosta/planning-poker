@@ -1,8 +1,57 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<configuration>
-    <include resource="com/google/cloud/spring/logging/logback-appender.xml" />
 
-    <root level="INFO">
-        <appender-ref ref="STACKDRIVER"/>
-    </root>
+<!--
+Logs changed between App Engine Gen1 and Gen2. As mentioned in the links below, Gen1 would cache all logs entries from a
+request before sending them to Cloud Logging, and the severity would be according to the highest severity among the log
+entries. Gen2, however, handles request logs (indicating requests received) and application logs (what the application
+prints while processing each request) separately. Entries from the two log files are combined based on a "trace ID"
+that the GCP Spring plugin extracts from requests. This new format is much more limited than Gen1's for executing
+queries, and also has a corner case known issue.
+
+- https://cloud.google.com/appengine/docs/standard/java-gen2/java-differences#key-differences
+- https://cloud.google.com/appengine/docs/standard/writing-application-logs?tab=java
+- https://cloud.google.com/appengine/docs/standard/writing-application-logs?tab=java#known_issues
+
+
+All the 3 configurations below work; I'm keeping them all here just for learning purposes.
+The first 2 work the same; the 3rd one uses a custom class to add extra information to the logs, and uses different
+settings according to Spring profile.
+-->
+
+<!--<configuration>-->
+<!--    <include resource="com/google/cloud/spring/logging/logback-appender.xml" />-->
+<!--    <root level="INFO">-->
+<!--        <appender-ref ref="STACKDRIVER"/>-->
+<!--    </root>-->
+<!--</configuration>-->
+
+<!--<configuration>-->
+<!--    <include resource="com/google/cloud/spring/logging/logback-json-appender.xml" />-->
+<!--    <root level="INFO">-->
+<!--        <appender-ref ref="CONSOLE_JSON" />-->
+<!--    </root>-->
+<!--</configuration>-->
+
+<configuration>
+    <springProfile name="prod">
+        <appender name="CONSOLE_JSON" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder class="ch.qos.logback.core.encoder.LayoutWrappingEncoder">
+                <layout class="com.ghrcosta.planningpoker.util.CustomGcpJsonLayout">
+                    <projectId>${SPRING_CLOUD_GCP_LOGGING_PROJECT_ID}</projectId>
+                </layout>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_JSON" />
+        </root>
+    </springProfile>
+
+    <springProfile name="local">
+        <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+        <include resource="org/springframework/boot/logging/logback/console-appender.xml" />
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
 </configuration>

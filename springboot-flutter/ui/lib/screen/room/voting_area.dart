@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:ui/entity/participant.dart';
 import 'package:ui/entity/room.dart';
+import 'package:ui/screen/footer.dart';
 import 'package:ui/screen/room/voting_area_cards.dart';
 import 'package:ui/screen/room/voting_area_pending.dart';
 import 'package:ui/screen/room/voting_area_results.dart';
@@ -50,31 +51,32 @@ class _RoomVotingAreaWidgetState extends State<RoomVotingAreaWidget> {
   @override
   Widget build(BuildContext context) {
     return Stack(
-        children: [
-          ListView(
-            children: [
-              VoteCardsWidget(
-                onClickVote: onSubmitVote,
-                onClickReveal: onRevealVotes,
-                onClickClear: onClearVotes,
-                voteSelected: widget.participant.vote,
-                votesRevealed: widget.room.votesRevealed,
-              ),
-              if (widget.room.votesRevealed)
-                VoteResultsWidget(
-                  participantResults: widget.room.participants,
-                  userName: widget.participant.name
-                )
-              else
-                VotePendingWidget(
-                  participantsPendingResults: widget.room.participants,
-                  userName: widget.participant.name
-                )
-            ],
-          ),
-          if (_isLoading)
-            const LinearProgressIndicator(semanticsLabel: 'Loading indicator'),
-        ],
+      children: [
+        ListView(
+          children: [
+            VoteCardsWidget(
+              onClickVote: onSubmitVote,
+              onClickReveal: onRevealVotes,
+              onClickClear: onClearVotes,
+              voteSelected: widget.participant.vote,
+              votesRevealed: widget.room.votesRevealed,
+            ),
+            if (widget.room.votesRevealed)
+              VoteResultsWidget(
+                participantResults: widget.room.participants,
+                userName: widget.participant.name
+              )
+            else
+              VotePendingWidget(
+                participantsPendingResults: widget.room.participants,
+                userName: widget.participant.name
+              )
+          ],
+        ),
+        if (_isLoading)
+          const LinearProgressIndicator(semanticsLabel: 'Loading indicator'),
+        const FooterWidget(),
+      ],
     );
   }
 }

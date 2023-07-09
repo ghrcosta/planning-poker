@@ -1,10 +1,10 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="PlanningPokerApplicationKt" type="JetRunConfigurationType" nameIsGenerated="true">
+  <configuration default="false" name="Build Flutter &amp; Run locally" type="JetRunConfigurationType">
     <option name="MAIN_CLASS_NAME" value="com.ghrcosta.planningpoker.PlanningPokerApplicationKt" />
     <module name="planning-poker.springboot.main" />
     <shortenClasspath name="NONE" />
     <method v="2">
-      <option name="Make" enabled="true" />
+      <option name="Gradle.BeforeRunTask" enabled="true" tasks="build" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
     </method>
   </configuration>
 </component>

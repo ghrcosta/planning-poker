@@ -21,7 +21,7 @@ class AppEngineController {
     @GetMapping("/start")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @Operation(
-        summary = "Warmup",
+        summary = "Instance startup",
         description = "Called by App Engine during container initialization.")
     @ApiResponse(
         responseCode = "204",

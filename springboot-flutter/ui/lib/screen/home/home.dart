@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:ui/network.dart';
 import 'package:ui/screen/base.dart';
+import 'package:ui/screen/footer.dart';
 import 'package:ui/screen/theme_toggle.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -55,6 +56,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           if (_isLoading)
               const LinearProgressIndicator(semanticsLabel: 'Loading indicator'),
+          const FooterWidget(),
         ],
       ),
     );

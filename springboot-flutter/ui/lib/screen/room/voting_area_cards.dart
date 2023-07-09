@@ -40,7 +40,6 @@ class _VoteCardsWidgetState extends State<VoteCardsWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _voteOptionCard("0"),
               _voteOptionCard("½"),
               _voteOptionCard("1"),
               _voteOptionCard("2"),
@@ -55,8 +54,20 @@ class _VoteCardsWidgetState extends State<VoteCardsWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              baseButton(context, "Reveal", widget.votesRevealed ? null : widget.onClickReveal),
-              baseButton(context, "Clear", widget.onClickClear),
+              baseButton(
+                context,
+                "Reveal",
+                (!widget.votesRevealed && widget.voteSelected != null)
+                  ? () => { _confirmRevealDialog(widget.onClickReveal) }
+                  : null
+              ),
+              baseButton(
+                context,
+                "Clear",
+                (widget.votesRevealed)
+                  ? widget.onClickClear
+                  : null
+              ),
             ],
           ),
         ],
@@ -94,6 +105,43 @@ class _VoteCardsWidgetState extends State<VoteCardsWidget> {
           ),
         ),
       ),
+    );
+  }
+
+  Future<void> _confirmRevealDialog(Function() onConfirmReveal) {
+    return showDialog<void>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Reveal all votes?'),
+          content: Text(
+            'Once revealed, votes cannot be hidden again.\n'
+            'Participants can still change their votes after they\'ve been revealed.',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+          actions: <Widget>[
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                textStyle: Theme.of(context).textTheme.labelLarge,
+              ),
+              child: const Text('Reveal'),
+              onPressed: () {
+                Navigator.of(context).pop();
+                onConfirmReveal();
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 }

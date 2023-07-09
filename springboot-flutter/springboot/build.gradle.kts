@@ -56,12 +56,8 @@ dependencies {
 	// The "Apache Commons Logging" transitive dependency must be excluded, otherwise Spring Boot will complain it
 	// conflicts with its own "spring-jcl" package.
 	implementation("com.google.cloud:spring-cloud-gcp-starter")
-	implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore") {
-		exclude("commons-logging","commons-logging")
-	}
-	implementation("com.google.cloud:spring-cloud-gcp-starter-logging") {
-		exclude("commons-logging","commons-logging")
-	}
+	implementation("com.google.cloud:spring-cloud-gcp-starter-data-firestore")
+	implementation("com.google.cloud:spring-cloud-gcp-starter-logging")
 
 	// Spring Doc - Parses application endpoints and generates Swagger documentation (access /swagger-ui/index.html)
 	// https://springdoc.org/v2
@@ -106,7 +102,17 @@ allprojects {
 	tasks.register<DependencyReportTask>("allDependencies")
 }
 
-tasks.register<Exec>("buildFlutter") {
+tasks.register<Exec>("cleanFlutterBuildDir") {
+	workingDir = File("${rootDir}/ui/")
+	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
+		commandLine("cmd", "/c", "flutter", "clean")
+	} else {
+		commandLine("flutter", "clean")  // Untested!
+	}
+}
+
+tasks.register<Exec>("compileFlutter") {
+	dependsOn("cleanFlutterBuildDir")
 	// https://docs.flutter.dev/deployment/web#building-the-app-for-release
 	workingDir = File("${rootDir}/ui/")
 	if (Os.isFamily(Os.FAMILY_WINDOWS)) {
@@ -117,11 +123,11 @@ tasks.register<Exec>("buildFlutter") {
 }
 
 tasks.register<Delete>("deleteCurrentFlutterBuild") {
-	dependsOn("buildFlutter")
+	dependsOn("compileFlutter")
 	delete("${projectDir}/src/main/resources/static")
 }
 
-tasks.register<Copy>("copyFlutterBuild") {
+tasks.register<Copy>("buildFlutter") {
 	dependsOn("deleteCurrentFlutterBuild")
 	from("${rootDir}/ui/build/web")
 	into("${projectDir}/src/main/resources/static")
@@ -134,7 +140,7 @@ tasks {
 	// "processResources" and "copyFlutterBuild" -- the former must depend on the latter. As a side effect, since this
 	// task runs early in the process, the Flutter frontend will be built during tests as well.
 	processResources {
-		dependsOn("copyFlutterBuild")
+		dependsOn("buildFlutter")
 	}
 }
 
