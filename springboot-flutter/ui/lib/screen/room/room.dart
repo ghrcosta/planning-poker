@@ -71,7 +71,7 @@ class _RoomScreenState extends State<RoomScreen> {
           return Text("Connection to Firestore database failed: ${snapshot.error}");
         }
         if (snapshot.data!.data() == null) {
-          return const Text("Failed to load data: Firestore returned null");
+          return const Text("Failed to load data: Firestore returned null -- the room might've been deleted");
         }
 
         final Room room;
