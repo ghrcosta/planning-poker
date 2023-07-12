@@ -3,4 +3,3 @@ plugins {
 }
 
 group = "com.ghrcosta"
-version = "1.1.0"

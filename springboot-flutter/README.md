@@ -80,7 +80,9 @@ the Firebase SDK for Flutter.
 ## Executing locally
 
 Firestore emulator is required, otherwise the requests will be sent to the real
-instance on GCP.
+instance on GCP. You could change the application properties to use the in-memory
+storage, but note that the frontend won't work with it (because it depends on
+Firebase sync).
 
 
 
@@ -89,8 +91,8 @@ instance on GCP.
       $ cd <project_directory>/springboot
       $ firebase emulators:start
       ```
-    * Access the emulators UI via `http://localhost:8090`
-2. Run backend server
+    * Access the emulator's UI via `http://localhost:8090`
+2. Run backend
     1. Change the project ID in
        `<project_directory>/springboot/src/main/resources/application-local.properties`.
     2. In order to execute the server you need to be at `<project_directory>`. From there,
@@ -102,7 +104,7 @@ instance on GCP.
        "Run locally (skip Flutter build)"). In both cases, the server will be waiting for
        requests at address `http://localhost:8080`. The Swagger API documentation will be
        available at `http://localhost:8080/swagger-ui/index.html`.
-3. Run frontend server
+3. Run frontend debug server
     1. From `<project_directory>/ui`, execute `flutter run`. Or, if using an IDE, make
        sure the "target device" is configured to be one of your browsers, then use the
        corresponding button to execute the debug server. The browser will open
@@ -130,14 +132,18 @@ instance on GCP.
         ```
         $ gcloud auth login
         ```
-4. Deploy the backend
+4. Deploy the backend using the `gradlew` command below or via the "Deploy JAR to App
+   Engine" IntelliJ IDEA run configuration
    ```
    ./gradlew clean appengineDeploy
    ```
-5. Deploy Cron job (if changed)
+5. Deploy Cron job (if changed) using one of the commands below or via the "Deploy Cron
+   Jobs" IntelliJ IDEA run configuration
    ```
-   $ cd <project_directory>
+   $ cd <project_directory>/springboot
    $ gcloud app deploy cron.yaml
+   OR
+   $./gradlew appengineDeployCron
    ```
 6. Deploy Firestore security rules (if changed)
    ```

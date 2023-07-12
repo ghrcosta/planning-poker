@@ -40,6 +40,7 @@ class _VoteCardsWidgetState extends State<VoteCardsWidget> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
+              _voteOptionCard("0"),
               _voteOptionCard("½"),
               _voteOptionCard("1"),
               _voteOptionCard("2"),
