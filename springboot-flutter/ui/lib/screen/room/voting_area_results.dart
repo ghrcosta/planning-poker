@@ -20,30 +20,31 @@ class VoteResultsWidget extends StatefulWidget {
 class _VoteResultsWidgetState extends State<VoteResultsWidget> {
   @override
   Widget build(BuildContext context) {
-    final voteMap = <String, List<String>>{};
+    final voteMap = <double, List<Participant>>{};
     for (var i = 0; i < widget.participantResults.length; i++) {
       final participant = widget.participantResults[i];
-      final id = participant.vote;
-      if (id == null) {
-        continue;
-      }
+      final id = participant.convertToVoteSortingValue();
       if (voteMap.containsKey(id)) {
-        voteMap[id]!.add(participant.name);
+        voteMap[id]!.add(participant);
       } else {
-        voteMap[id] = [participant.name];
+        voteMap[id] = [participant];
       }
     }
 
     var sortedMapKeys = voteMap.keys.toList();
-    sortedMapKeys.sort((a, b) =>
-      Participant.convertToVoteSortingValue(a).compareTo(Participant.convertToVoteSortingValue(b)));
+    sortedMapKeys.sort();
     sortedMapKeys = sortedMapKeys.reversed.toList();
     
     final List<Widget> entryGroups = [];
     for (var i = 0; i < sortedMapKeys.length; i++) {
       final key = sortedMapKeys[i];
+      final participantList = voteMap[key]!;
       entryGroups.add(
-        _voteResultEntry(key, voteMap[key]!, widget.userName)
+        _voteResultEntry(
+          participantList[0].vote,
+          participantList.map((e) => e.name).toList(),
+          widget.userName
+        )
       );
       entryGroups.add(
         const SizedBox(height: 20)
@@ -58,7 +59,7 @@ class _VoteResultsWidgetState extends State<VoteResultsWidget> {
     );
   }
 
-  Widget _voteResultEntry(String vote, List<String> participantNames, String userName) {
+  Widget _voteResultEntry(String? vote, List<String> participantNames, String userName) {
     final List<Widget> participantRows = [];
 
     participantNames.sort((a, b) => a.toLowerCase().compareTo(b.toLowerCase()));
@@ -67,16 +68,25 @@ class _VoteResultsWidgetState extends State<VoteResultsWidget> {
 
       final isThisUser = (name == userName);
       
-      var nameColor =
-        isThisUser
-          ? Theme.of(context).colorScheme.tertiary
-          : Theme.of(context).colorScheme.secondary;
+      Color nameColor;
+      if (vote != null) {
+        nameColor =
+          isThisUser
+            ? Theme.of(context).colorScheme.tertiary
+            : Theme.of(context).colorScheme.secondary;
+      } else {
+        nameColor =
+          isThisUser
+            ? Theme.of(context).colorScheme.tertiaryContainer
+            : Theme.of(context).colorScheme.secondaryContainer;
+      }
 
       participantRows.add(
         Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _voteOptionResultCard(vote, isThisUser),
+            if (vote != null)
+              _voteOptionResultCard(vote, isThisUser),
             const SizedBox(width: 5),
             Text(
               name,
@@ -94,7 +104,7 @@ class _VoteResultsWidgetState extends State<VoteResultsWidget> {
   }
 
   Widget _voteOptionResultCard(String text, bool highlight) {
-    final backgrounColor =
+    final backgroundColor =
       highlight
         ? Theme.of(context).colorScheme.tertiaryContainer
         : Theme.of(context).colorScheme.surface;
@@ -105,7 +115,7 @@ class _VoteResultsWidgetState extends State<VoteResultsWidget> {
         : Theme.of(context).colorScheme.onSurfaceVariant;
 
     return Card(
-      color: backgrounColor,
+      color: backgroundColor,
       shape: baseRectangleBorder,
       child: SizedBox(
         height: 40,

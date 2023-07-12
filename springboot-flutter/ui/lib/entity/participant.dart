@@ -8,28 +8,29 @@ class Participant {
     return Participant(name: json['name'], vote: json['vote']);
   }
 
-  String getValidVote() {
-    final vote = this.vote;
-    if (vote == null) {
-      return "null";
-    }
-    return vote;
-  }
-
-  static double convertToVoteSortingValue(String validVoteStr) {
-    switch(validVoteStr) {
+  double convertToVoteSortingValue() {
+    final vote = _getValidVote();
+    switch(vote) {
       case "null":
-        return -2;
+        return -3;
       case "½":
         return 0.5;
       case "?":
         return -1;
       default:
         try {
-          return double.parse(validVoteStr);
+          return double.parse(vote);
         } on FormatException {
-          return -3;
+          return -2;
         }
     }
+  }
+
+  String _getValidVote() {
+    final vote = this.vote;
+    if (vote == null) {
+      return "null";
+    }
+    return vote;
   }
 }

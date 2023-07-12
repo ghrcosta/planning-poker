@@ -20,15 +20,19 @@ class VotePendingWidget extends StatefulWidget {
 class _VotePendingWidgetState extends State<VotePendingWidget> {
   @override
   Widget build(BuildContext context) {
-    widget.participantsPendingResults.retainWhere((i) => i.vote != null);
-    widget.participantsPendingResults.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+    final participantsWithVotes = widget.participantsPendingResults.where((i) => i.vote != null).toList();
+    participantsWithVotes.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    final participantsWithoutVotes = widget.participantsPendingResults.where((i) => i.vote == null).toList();
+    participantsWithoutVotes.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+
+    final sortedParticipants = participantsWithVotes.followedBy(participantsWithoutVotes);
 
     final List<Widget> entryGroups = [];
-    for (var i = 0; i < widget.participantsPendingResults.length; i++) {
-      final participantName = widget.participantsPendingResults[i].name;
-      final isThisUser = (participantName == widget.userName);
+    for (final participant in sortedParticipants) {
+      final isThisUser = (participant.name == widget.userName);
       entryGroups.add(
-        _votePendingEntry(participantName, isThisUser)
+        _votePendingEntry(participant.name, hasVote: (participant.vote != null), highlight: isThisUser)
       );
     }
 
@@ -40,16 +44,25 @@ class _VotePendingWidgetState extends State<VotePendingWidget> {
     );
   }
 
-  Widget _votePendingEntry(String name, bool highlight) {
-    var nameColor =
-      highlight
-        ? Theme.of(context).colorScheme.tertiary
-        : Theme.of(context).colorScheme.secondary;
+  Widget _votePendingEntry(String name, { required bool hasVote, required bool highlight }) {
+    Color nameColor;
+    if (hasVote) {
+      nameColor =
+        highlight
+          ? Theme.of(context).colorScheme.tertiary
+          : Theme.of(context).colorScheme.secondary;
+    } else {
+      nameColor =
+        highlight
+          ? Theme.of(context).colorScheme.tertiaryContainer
+          : Theme.of(context).colorScheme.secondaryContainer;
+    }
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        _votePendingCard(highlight),
+        if (hasVote)
+          _votePendingCard(highlight),
         const SizedBox(width: 5),
         Text(
           name,
@@ -60,13 +73,13 @@ class _VotePendingWidgetState extends State<VotePendingWidget> {
   }
 
   Widget _votePendingCard(bool highlight) {
-    final backgrounColor =
+    final backgroundColor =
       highlight
         ? Theme.of(context).colorScheme.tertiaryContainer
         : Theme.of(context).colorScheme.surface;
 
     return Card(
-      color: backgrounColor,
+      color: backgroundColor,
       shape: baseRectangleBorder,
       child: const SizedBox(
         height: 40,

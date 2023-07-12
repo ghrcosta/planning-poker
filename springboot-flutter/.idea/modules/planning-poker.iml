@@ -6,6 +6,7 @@
       <excludeFolder url="file://$MODULE_DIR$/../../ui/.history" />
       <excludeFolder url="file://$MODULE_DIR$/../../ui/.idea" />
       <excludeFolder url="file://$MODULE_DIR$/../../ui/build" />
+      <excludeFolder url="file://$MODULE_DIR$/../../ui/.pub" />
     </content>
   </component>
 </module>

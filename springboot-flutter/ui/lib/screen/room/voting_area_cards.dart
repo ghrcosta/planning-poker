@@ -76,7 +76,7 @@ class _VoteCardsWidgetState extends State<VoteCardsWidget> {
   }
 
   Widget _voteOptionCard(String text) {
-    final backgrounColor =
+    final backgroundColor =
       (text == widget.voteSelected)
         ? Theme.of(context).colorScheme.surfaceVariant
         : Theme.of(context).colorScheme.surface;
@@ -87,7 +87,7 @@ class _VoteCardsWidgetState extends State<VoteCardsWidget> {
         : Theme.of(context).colorScheme.onSurface;
 
     return Card(
-      color: backgrounColor,
+      color: backgroundColor,
       shape: baseRectangleBorder,
       child: InkWell(
         onTap: () {

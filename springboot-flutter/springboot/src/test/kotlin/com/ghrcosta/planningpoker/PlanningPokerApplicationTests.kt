@@ -1,11 +1,12 @@
 package com.ghrcosta.planningpoker
 
-import kotlin.test.Test
 import org.springframework.boot.test.context.SpringBootTest
+import kotlin.test.Test
 
 @SpringBootTest
 class PlanningPokerApplicationTests {
 
 	@Test
+	@Suppress("EmptyMethod")
 	fun contextLoads() { /* Nothing to do */ }
 }
